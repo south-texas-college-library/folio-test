@@ -1,0 +1,13 @@
+{
+    "displayName": "Circulation - Subject Search",
+    "description": "Create a list of all Items that contains the input as one of their subjects.",
+    "instructions": "Input a subject for items you would like to search for",
+    "parameters": [
+        {
+            "name": "subject",
+            "displayName": "Subject",
+            "type": "text",
+            "required": true
+        }
+    ]
+}

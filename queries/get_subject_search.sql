@@ -1,0 +1,94 @@
+--ldp:function get_subject_search
+
+DROP FUNCTION IF EXISTS get_subject_search;
+
+CREATE FUNCTION get_subject_search(
+    subject text DEFAULT NULL
+)
+RETURNS TABLE(
+    title TEXT,
+    campus TEXT,
+    author TEXT,
+    call_number TEXT,
+    item_barcode TEXT,
+    item_type TEXT,
+    date_created TEXT
+    publication_date TEXT,
+    isbn TEXT,
+    home_location TEXT,
+    current_location TEXT,
+    subjects TEXT,
+    total_renewals INTEGER,
+    total_checkouts INTEGER,
+    content TEXT,
+    publisher TEXT,
+    subtype TEXT
+)
+AS $$
+SELECT DISTINCT
+	folio_derived.items_holdings_instances.title AS "Title",
+    folio_derived.locations_libraries.campus_name as "Campus",
+    folio_derived.instance_contributors.contributor_name as "Author",
+    folio_derived.items_holdings_instances.call_number as "Call Number",
+    folio_derived.items_holdings_instances.barcode as "Barcode",
+    folio_derived.items_holdings_instances.material_type_name as "Item Type",
+    folio_derived.items_holdings_instances.cataloged_date as "Date Created",
+	(SELECT MAX(val::text) FROM unnest(string_to_array(REGEXP_REPLACE(folio_derived.instance_publication.date_of_publication, '[^0-9,]', '', 'g'), ',')) as val) as "Publication Date",
+    string_agg(DISTINCT split_part(folio_derived.instance_identifiers.identifier, ' : ', 1), ', ') AS "ISBN",
+    folio_derived.holdings_ext.permanent_location_name as "Home Location",
+    folio_derived.item_ext.effective_location_name as "Current Location",
+    string_agg(DISTINCT jsonb_extract_path_text(folio_derived.instance_subjects.subjects::jsonb, 'value'), ', ') AS "Subjects",
+    folio_derived.loans_renewal_count.num_renewals as "Total Renewals",
+    (SELECT COUNT(*) FROM folio_derived.loans_items WHERE folio_derived.loans_items.item_id = folio_derived.items_holdings_instances.item_id) AS "Total Checkouts",
+    folio_derived.instance_statistical_codes.statistical_code_name as "Content",
+    folio_derived.instance_publication.publisher as "Publisher",
+    folio_derived.item_statistical_codes.statistical_code_name as "Subtype"
+FROM 
+    folio_derived.items_holdings_instances
+    LEFT JOIN folio_derived.holdings_ext ON folio_derived.holdings_ext.holdings_id = folio_derived.items_holdings_instances.holdings_id
+    LEFT JOIN folio_derived.item_ext ON folio_derived.item_ext.item_id = folio_derived.items_holdings_instances.item_id
+    LEFT JOIN folio_source_record.marc__t ON folio_source_record.marc__t.instance_id = folio_derived.items_holdings_instances.instance_id
+    LEFT JOIN folio_derived.instance_identifiers ON folio_derived.instance_identifiers.instance_id = folio_derived.items_holdings_instances.instance_id
+    LEFT JOIN folio_derived.instance_subjects ON folio_derived.instance_subjects.instance_id = folio_derived.items_holdings_instances.instance_id
+    LEFT JOIN folio_derived.instance_publication ON folio_derived.instance_publication.instance_id = folio_derived.items_holdings_instances.instance_id
+    LEFT JOIN folio_derived.item_notes ON folio_derived.item_notes.item_id = folio_derived.items_holdings_instances.item_id
+    LEFT JOIN folio_derived.locations_libraries ON folio_derived.locations_libraries.location_id = folio_derived.item_ext.effective_location_id
+    LEFT JOIN folio_derived.loans_renewal_count ON folio_derived.loans_renewal_count.item_id = folio_derived.items_holdings_instances.item_id
+    LEFT JOIN folio_derived.instance_statistical_codes ON folio_derived.instance_statistical_codes.instance_id = folio_derived.items_holdings_instances.instance_id
+    LEFT JOIN folio_derived.instance_contributors on folio_derived.instance_contributors.instance_id = folio_derived.items_holdings_instances.instance_id
+    LEFT JOIN folio_derived.item_statistical_codes on folio_derived.item_statistical_codes.item_id = folio_derived.items_holdings_instances.item_id
+WHERE 
+    folio_source_record.marc__t.field = '650'
+    AND folio_source_record.marc__t.content ILIKE '%Juvenile%'
+    AND folio_derived.instance_identifiers.identifier_type_name = 'ISBN'
+    AND folio_derived.instance_publication.publication_role = 'Publication'
+    AND folio_derived.item_notes.note_type_name = 'Price'
+    AND folio_derived.instance_statistical_codes.statistical_code_type_name = 'CONTENT'
+    AND folio_derived.instance_contributors.contributor_is_primary = true
+    AND folio_derived.instance_publication.publication_ordinality = 1
+GROUP BY
+    folio_derived.holdings_ext.permanent_location_name,
+    folio_derived.instance_contributors.contributor_name,
+    folio_derived.instance_publication.date_of_publication,
+    folio_derived.instance_publication.publication_role,
+    folio_derived.instance_publication.publisher,
+    folio_derived.instance_publication.publication_place,
+    folio_derived.instance_publication.publication_ordinality,
+    folio_derived.instance_statistical_codes.statistical_code_name,
+    folio_derived.item_ext.effective_location_name,
+    folio_derived.item_notes.note,
+    folio_derived.items_holdings_instances.barcode,
+    folio_derived.items_holdings_instances.call_number,
+    folio_derived.items_holdings_instances.cataloged_date,
+    folio_derived.items_holdings_instances.instance_id,
+    folio_derived.items_holdings_instances.item_id,
+    folio_derived.items_holdings_instances.material_type_name,
+    folio_derived.items_holdings_instances.title,
+    folio_derived.item_statistical_codes.statistical_code_name,
+    folio_derived.loans_renewal_count.num_renewals,
+    folio_derived.locations_libraries.campus_name,
+    folio_source_record.marc__t.content
+$$
+LANGUAGE SQL
+STABLE
+PARALLEL SAFE;

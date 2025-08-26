@@ -1,4 +1,4 @@
---ldp:function get_subject_search
+--metadb:function get_subject_search
 
 DROP FUNCTION IF EXISTS get_subject_search;
 
@@ -26,23 +26,23 @@ RETURNS TABLE(
 )
 AS $$
 SELECT DISTINCT
-	folio_derived.items_holdings_instances.title AS "Title",
-    folio_derived.locations_libraries.campus_name as "Campus",
-    folio_derived.instance_contributors.contributor_name as "Author",
-    folio_derived.items_holdings_instances.call_number as "Call Number",
-    folio_derived.items_holdings_instances.barcode as "Barcode",
-    folio_derived.items_holdings_instances.material_type_name as "Item Type",
-    folio_derived.items_holdings_instances.cataloged_date as "Date Created",
-	(SELECT MAX(val::text) FROM unnest(string_to_array(REGEXP_REPLACE(folio_derived.instance_publication.date_of_publication, '[^0-9,]', '', 'g'), ',')) as val) as "Publication Date",
-    string_agg(DISTINCT split_part(folio_derived.instance_identifiers.identifier, ' : ', 1), ', ') AS "ISBN",
-    folio_derived.holdings_ext.permanent_location_name as "Home Location",
-    folio_derived.item_ext.effective_location_name as "Current Location",
-    string_agg(DISTINCT jsonb_extract_path_text(folio_derived.instance_subjects.subjects::jsonb, 'value'), ', ') AS "Subjects",
-    folio_derived.loans_renewal_count.num_renewals as "Total Renewals",
-    (SELECT COUNT(*) FROM folio_derived.loans_items WHERE folio_derived.loans_items.item_id = folio_derived.items_holdings_instances.item_id) AS "Total Checkouts",
-    folio_derived.instance_statistical_codes.statistical_code_name as "Content",
-    folio_derived.instance_publication.publisher as "Publisher",
-    folio_derived.item_statistical_codes.statistical_code_name as "Subtype"
+	folio_derived.items_holdings_instances.title AS title,
+    folio_derived.locations_libraries.campus_name as campus,
+    folio_derived.instance_contributors.contributor_name as author,
+    folio_derived.items_holdings_instances.call_number as call_number,
+    folio_derived.items_holdings_instances.barcode as item_barcode,
+    folio_derived.items_holdings_instances.material_type_name as item_type,
+    folio_derived.items_holdings_instances.cataloged_date as date_created,
+	(SELECT MAX(val::text) FROM unnest(string_to_array(REGEXP_REPLACE(folio_derived.instance_publication.date_of_publication, '[^0-9,]', '', 'g'), ',')) as val) as publication_date,
+    string_agg(DISTINCT split_part(folio_derived.instance_identifiers.identifier, ' : ', 1), ', ') AS isbn,
+    folio_derived.holdings_ext.permanent_location_name as home_location,
+    folio_derived.item_ext.effective_location_name as current_location,
+    string_agg(DISTINCT jsonb_extract_path_text(folio_derived.instance_subjects.subjects::jsonb, 'value'), ', ') AS subjects,
+    folio_derived.loans_renewal_count.num_renewals as total_renewals,
+    (SELECT COUNT(*) FROM folio_derived.loans_items WHERE folio_derived.loans_items.item_id = folio_derived.items_holdings_instances.item_id) AS total_checkouts,
+    folio_derived.instance_statistical_codes.statistical_code_name as content,
+    folio_derived.instance_publication.publisher as publisher,
+    folio_derived.item_statistical_codes.statistical_code_name as subtype
 FROM 
     folio_derived.items_holdings_instances
     LEFT JOIN folio_derived.holdings_ext ON folio_derived.holdings_ext.holdings_id = folio_derived.items_holdings_instances.holdings_id
@@ -59,7 +59,7 @@ FROM
     LEFT JOIN folio_derived.item_statistical_codes on folio_derived.item_statistical_codes.item_id = folio_derived.items_holdings_instances.item_id
 WHERE 
     folio_source_record.marc__t.field = '650'
-    AND folio_source_record.marc__t.content ILIKE '%Juvenile%'
+    AND folio_source_record.marc__t.content ILIKE '%' || subject || '%'
     AND folio_derived.instance_identifiers.identifier_type_name = 'ISBN'
     AND folio_derived.instance_publication.publication_role = 'Publication'
     AND folio_derived.item_notes.note_type_name = 'Price'

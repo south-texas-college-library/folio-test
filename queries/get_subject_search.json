@@ -1,6 +1,6 @@
 {
-    "displayName": "Circulation - Subject Search",
-    "description": "Create a list of all Items that contains the input as one of their subjects.",
+    "displayName": "Collection - Subject Search",
+    "description": "This report lists items that include the input term as one of their subjects.",
     "instructions": "Input a subject for items you would like to search for",
     "parameters": [
         {

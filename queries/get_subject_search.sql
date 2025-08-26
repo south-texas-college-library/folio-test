@@ -12,7 +12,7 @@ RETURNS TABLE(
     call_number TEXT,
     item_barcode TEXT,
     item_type TEXT,
-    date_created TEXT
+    date_created TEXT,
     publication_date TEXT,
     isbn TEXT,
     home_location TEXT,

@@ -1,0 +1,67 @@
+{
+    "displayName": "Collection - Item Details",
+    "description": "This report lists items that are from a service point, item location, and filtered by the selected material type.",
+    "instructions": "Select a service point, item location, and material type to run the report",
+    "parameters": [
+        {
+            "name": "service_point",
+            "displayName": "Service Point",
+            "type": "text",
+            "required": true,
+            "controlled.options": [
+                "Mid-Valley CLE",
+                "Mid-Valley Library",
+                "Mid-Valley Open Lab",
+                "NAH CLE",
+                "NAH Library",
+                "NAH Open Lab",
+                "Online",
+                "Pecan CLE",
+                "Pecan Library",
+                "Pecan Open Lab",
+                "RCPSE CLE",
+                "RCPSE Library",
+                "RCPSE Open Lab",
+                "Starr County CLE",
+                "Starr County Library",
+                "Starr County Open Lab",
+                "Technical Services",
+                "Technology CLE",
+                "Technology Library",
+                "Technology Open Lab"
+            ]
+        },
+        {
+            "name": "item_location",
+            "displayName": "Item Location",
+            "type": "text",
+            "required": true,
+            "controlled.fetchOptions": "locations"
+        },
+        {
+            "name": "material_type",
+            "displayName": "Material Type",
+            "type": "text",
+            "required": true,
+            "controlled.fetchOptions": "materialTypes"
+        },
+        {
+            "name": "item_status",
+            "displayName": "Item Status",
+            "type": "text",
+            "required": true,
+            "controlled.options": [
+                "Aged to lost",
+                "Available",
+                "Awaiting pickup",
+                "Checked out",
+                "Claimed returned",
+                "Declared lost",
+                "In transit",
+                "Lost and paid",
+                "Missing",
+                "Paged"
+            ]
+        }
+    ]
+}

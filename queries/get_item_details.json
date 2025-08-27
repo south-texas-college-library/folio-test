@@ -1,13 +1,14 @@
 {
     "displayName": "Collection - Item Details",
-    "description": "This report lists items that are from a service point, item location, and filtered by the selected material type.",
-    "instructions": "Select a service point, item location, and material type to run the report",
+    "description": "This report lists items that are from a service point, item location, and filtered by the selected material type and item status.",
+    "instructions": "Select a service point, item location, material type, and item status to run the report",
     "parameters": [
         {
             "name": "service_point",
             "displayName": "Service Point",
             "type": "text",
             "required": true,
+            "default": "Pecan Library",
             "controlled.options": [
                 "Mid-Valley CLE",
                 "Mid-Valley Library",
@@ -36,6 +37,7 @@
             "displayName": "Item Location",
             "type": "text",
             "required": true,
+            "default": "PCN General",
             "controlled.options": [
                 "Interlibrary Loan",
                 "MV CLE",
@@ -109,6 +111,7 @@
             "displayName": "Material Type",
             "type": "text",
             "required": true,
+            "default": "BOOK",
             "controlled.options": [
                 "2HR-ITEM",
                 "3HR-ITEM",
@@ -135,6 +138,7 @@
             "displayName": "Item Status",
             "type": "text",
             "required": true,
+            "default": "Available",
             "controlled.options": [
                 "Aged to lost",
                 "Available",

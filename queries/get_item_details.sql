@@ -3,9 +3,9 @@
 DROP FUNCTION IF EXISTS get_item_details;
 
 CREATE FUNCTION get_item_details(
-    service_point text DEFAULT NULL
-    item_location text DEFAULT NULL
-    material_type text DEFAULT NULL
+    service_point text DEFAULT NULL,
+    item_location text DEFAULT NULL,
+    material_type text DEFAULT NULL,
     item_status text DEFAULT NULL
 )
 RETURNS TABLE(

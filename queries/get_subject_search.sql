@@ -34,7 +34,7 @@ SELECT DISTINCT
     folio_derived.items_holdings_instances.material_type_name as item_type,
     folio_derived.items_holdings_instances.cataloged_date as date_created,
 	(SELECT MAX(val::text) FROM unnest(string_to_array(REGEXP_REPLACE(folio_derived.instance_publication.date_of_publication, '[^0-9,]', '', 'g'), ',')) as val) as publication_date,
-    string_agg(DISTINCT split_part(folio_derived.instance_identifiers.identifier, ' : ', 1), ', ') AS isbn,
+    string_agg(DISTINCT split_part(folio_derived.instance_identifiers.identifier, ' : ', 1), ', ') AS identifier,
     folio_derived.holdings_ext.permanent_location_name as home_location,
     folio_derived.item_ext.effective_location_name as current_location,
     string_agg(DISTINCT jsonb_extract_path_text(folio_derived.instance_subjects.subjects::jsonb, 'value'), ', ') AS subjects,
@@ -60,23 +60,22 @@ FROM
 WHERE 
     folio_source_record.marc__t.field = '650'
     AND folio_source_record.marc__t.content ILIKE '%' || subject || '%'
-    AND folio_derived.instance_identifiers.identifier_type_name = 'ISBN'
-    AND folio_derived.instance_publication.publication_role = 'Publication'
+    AND folio_derived.instance_identifiers.identifier_type_name IN ('ISBN', 'ISSN')
     AND folio_derived.item_notes.note_type_name = 'Price'
-    AND folio_derived.instance_statistical_codes.statistical_code_type_name = 'CONTENT'
-    AND folio_derived.instance_contributors.contributor_is_primary = true
-    AND folio_derived.instance_publication.publication_ordinality = 1
+    AND (folio_derived.instance_contributors.contributor_ordinality = 1 OR folio_derived.instance_contributors.contributor_ordinality IS NULL)
+    AND (folio_derived.instance_publication.publication_ordinality = 1 OR folio_derived.instance_publication.publication_ordinality IS NULL)
 GROUP BY
     folio_derived.holdings_ext.permanent_location_name,
     folio_derived.instance_contributors.contributor_name,
     folio_derived.instance_publication.date_of_publication,
+    folio_derived.instance_publication.publication_ordinality,
+    folio_derived.instance_publication.publication_place,
     folio_derived.instance_publication.publication_role,
     folio_derived.instance_publication.publisher,
-    folio_derived.instance_publication.publication_place,
-    folio_derived.instance_publication.publication_ordinality,
     folio_derived.instance_statistical_codes.statistical_code_name,
     folio_derived.item_ext.effective_location_name,
     folio_derived.item_notes.note,
+    folio_derived.item_statistical_codes.statistical_code_name,
     folio_derived.items_holdings_instances.barcode,
     folio_derived.items_holdings_instances.call_number,
     folio_derived.items_holdings_instances.cataloged_date,
@@ -84,7 +83,6 @@ GROUP BY
     folio_derived.items_holdings_instances.item_id,
     folio_derived.items_holdings_instances.material_type_name,
     folio_derived.items_holdings_instances.title,
-    folio_derived.item_statistical_codes.statistical_code_name,
     folio_derived.loans_renewal_count.num_renewals,
     folio_derived.locations_libraries.campus_name,
     folio_source_record.marc__t.content

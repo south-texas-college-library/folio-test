@@ -17,7 +17,7 @@ RETURNS TABLE(
     material_type_name TEXT,
     service_point_name TEXT,
     location_name TEXT,
-    price TEXT
+    price TEXT,
     inventory_date TEXT,
     po_number TEXT,
     staff_notes TEXT,

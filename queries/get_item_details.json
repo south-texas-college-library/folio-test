@@ -255,7 +255,7 @@
             "displayName": "Subtype",
             "type": "text",
             "required": true,
-            "default": "Default",
+            "default": "Fiction",
             "controlled.options": [
                 "AV Equipment",
                 "Calculator",

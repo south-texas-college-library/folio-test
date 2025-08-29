@@ -72,14 +72,14 @@ FROM
     LEFT JOIN folio_derived.instance_statistical_codes ON folio_derived.instance_statistical_codes.instance_id = folio_derived.items_holdings_instances.instance_id
     LEFT JOIN folio_derived.item_statistical_codes ON folio_derived.item_statistical_codes.item_id = folio_derived.items_holdings_instances.item_id
 WHERE
-	folio_derived.locations_service_points.service_point_name = service_point
-    AND folio_derived.holdings_ext.permanent_location_name = holdings_location
-	AND folio_derived.locations_libraries.location_name = item_location
-    AND folio_derived.item_ext.material_type_name = material_type
-	AND folio_derived.item_ext.status_name = item_status
-    AND folio_derived.item_ext.permanent_loan_type_name = permanent_loan_type
-	AND folio_derived.item_ext.temporary_loan_type_name = temporary_loan_type
-    AND folio_derived.instance_statistical_codes.statistical_code_name = subtype
+	(service_point = 'All' OR folio_derived.locations_service_points.service_point_name = service_point)
+    AND (holdings_location = 'All' OR folio_derived.holdings_ext.permanent_location_name = holdings_location)
+	AND (item_location = 'All' OR folio_derived.locations_libraries.location_name = item_location)
+    AND (material_type = 'All' OR folio_derived.item_ext.material_type_name = material_type)
+	AND (item_status = 'All' OR folio_derived.item_ext.status_name = item_status)
+    AND (permanent_loan_type = '' OR folio_derived.item_ext.permanent_loan_type_name = permanent_loan_type)
+	AND (temporary_loan_type = '' OR folio_derived.item_ext.temporary_loan_type_name = temporary_loan_type)
+    AND (subtype = 'All' OR folio_derived.instance_statistical_codes.statistical_code_name = subtype)
     AND (folio_derived.instance_publication.publication_ordinality = 1 OR folio_derived.instance_publication.publication_ordinality IS NULL)
 GROUP BY
     folio_derived.items_holdings_instances.title,

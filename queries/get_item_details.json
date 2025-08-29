@@ -8,8 +8,9 @@
             "displayName": "Service Point",
             "type": "text",
             "required": true,
-            "default": "Pecan Library",
+            "default": "All",
             "controlled.options": [
+                "All",
                 "Mid-Valley CLE",
                 "Mid-Valley Library",
                 "Mid-Valley Open Lab",
@@ -37,8 +38,9 @@
             "displayName": "Holdings Location",
             "type": "text",
             "required": true,
-            "default": "PCN General",
+            "default": "All",
             "controlled.options": [
+                "All",
                 "Interlibrary Loan",
                 "MV CLE",
                 "MV Displays",
@@ -111,8 +113,9 @@
             "displayName": "Item Location",
             "type": "text",
             "required": true,
-            "default": "PCN General",
+            "default": "All",
             "controlled.options": [
+                "All",
                 "Interlibrary Loan",
                 "MV CLE",
                 "MV Displays",
@@ -185,8 +188,9 @@
             "displayName": "Material Type",
             "type": "text",
             "required": true,
-            "default": "BOOK",
+            "default": "All",
             "controlled.options": [
+                "All",
                 "2HR-ITEM",
                 "3HR-ITEM",
                 "4HR-ITEM",
@@ -212,8 +216,9 @@
             "displayName": "Item Status",
             "type": "text",
             "required": true,
-            "default": "Available",
+            "default": "All",
             "controlled.options": [
+                "All",
                 "Aged to lost",
                 "Available",
                 "Awaiting pickup",
@@ -231,8 +236,9 @@
             "displayName": "Permanent Loan Type",
             "type": "text",
             "required": true,
-            "default": "Default",
+            "default": "",
             "controlled.options": [
+                "",
                 "Course Reserve",
                 "Default",
                 "High Value"
@@ -243,8 +249,9 @@
             "displayName": "Temporary Loan Type",
             "type": "text",
             "required": true,
-            "default": "Default",
+            "default": "",
             "controlled.options": [
+                "",
                 "Course Reserve",
                 "Default",
                 "High Value"
@@ -255,8 +262,9 @@
             "displayName": "Subtype",
             "type": "text",
             "required": true,
-            "default": "Fiction",
+            "default": "All",
             "controlled.options": [
+                "All",
                 "AV Equipment",
                 "Calculator",
                 "Community User Station",

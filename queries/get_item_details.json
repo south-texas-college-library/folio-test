@@ -221,14 +221,25 @@
                 "All",
                 "Aged to lost",
                 "Available",
+                "Awaiting delivery",
                 "Awaiting pickup",
                 "Checked out",
                 "Claimed returned",
                 "Declared lost",
+                "In process",
+                "In process (non-requestable)",
                 "In transit",
+                "Intellectual item",
+                "Long missing",
                 "Lost and paid",
                 "Missing",
-                "Paged"
+                "On order",
+                "Order closed",
+                "Paged",
+                "Restricted",
+                "Unavailable",
+                "Unknown",
+                "Withdrawn"
             ]
         },
         {
@@ -236,9 +247,9 @@
             "displayName": "Permanent Loan Type",
             "type": "text",
             "required": true,
-            "default": "",
+            "default": "All",
             "controlled.options": [
-                "",
+                "All",
                 "Course Reserve",
                 "Default",
                 "High Value"
@@ -249,9 +260,9 @@
             "displayName": "Temporary Loan Type",
             "type": "text",
             "required": true,
-            "default": "",
+            "default": "All",
             "controlled.options": [
-                "",
+                "All",
                 "Course Reserve",
                 "Default",
                 "High Value"

@@ -77,8 +77,8 @@ WHERE
 	AND (item_location = 'All' OR folio_derived.locations_libraries.location_name = item_location)
     AND (material_type = 'All' OR folio_derived.item_ext.material_type_name = material_type)
 	AND (item_status = 'All' OR folio_derived.item_ext.status_name = item_status)
-    AND (permanent_loan_type = '' OR folio_derived.item_ext.permanent_loan_type_name = permanent_loan_type)
-	AND (temporary_loan_type = '' OR folio_derived.item_ext.temporary_loan_type_name = temporary_loan_type)
+    AND (permanent_loan_type = 'All' OR folio_derived.item_ext.permanent_loan_type_name = permanent_loan_type)
+	AND (temporary_loan_type = 'All' OR folio_derived.item_ext.temporary_loan_type_name = temporary_loan_type)
     AND (subtype = 'All' OR folio_derived.instance_statistical_codes.statistical_code_name = subtype)
     AND (folio_derived.instance_publication.publication_ordinality = 1 OR folio_derived.instance_publication.publication_ordinality IS NULL)
 GROUP BY

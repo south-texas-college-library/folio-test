@@ -5,7 +5,7 @@ DROP FUNCTION IF EXISTS get_hotspot_checkouts;
 CREATE FUNCTION get_hotspot_checkouts(
     service_point text DEFAULT NULL,
     status text DEFAULT NULL,
-    start_date date DEFAULT '2025-01-01',
+    start_date date DEFAULT '2000-01-01',
     end_date date DEFAULT '2050-01-01'
 )
 RETURNS TABLE(
@@ -58,8 +58,8 @@ FROM
     LEFT JOIN folio_derived.loans_renewal_dates on folio_derived.loans_renewal_dates.loan_id = folio_derived.loans_items.loan_id
 WHERE 
     folio_derived.instance_statistical_codes.statistical_code_name = 'Hotspot'
-    AND folio_derived.loans_items.loan_status = status
-    AND loan_date BETWEEN start_date AND end_date
+    AND (status = 'All' OR folio_derived.loans_items.loan_status = status)
+    AND folio_derived.loans_items.loan_date BETWEEN start_date AND end_date
     AND	(service_point = 'All' OR folio_derived.loans_items.checkout_service_point_name = service_point)
 GROUP BY
     folio_inventory.instance__t.id,

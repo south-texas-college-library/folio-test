@@ -1,0 +1,61 @@
+{
+    "displayName": "Circulation - Hotspot Checkouts",
+    "description": "Create a list of all Hotspot Checkouts from a service point within a given period of time.",
+    "instructions": "Select a service point and input a start date of the period of time and/or an end date or leave the date fields empty",
+    "parameters": [
+        {
+            "name": "service_point",
+            "displayName": "Service Point",
+            "type": "text",
+            "required": true,
+            "default": "All",
+            "controlled.options": [
+                "All",
+                "Mid-Valley CLE",
+                "Mid-Valley Library",
+                "Mid-Valley Open Lab",
+                "NAH CLE",
+                "NAH Library",
+                "NAH Open Lab",
+                "Online",
+                "Pecan CLE",
+                "Pecan Library",
+                "Pecan Open Lab",
+                "RCPSE CLE",
+                "RCPSE Library",
+                "RCPSE Open Lab",
+                "Starr County CLE",
+                "Starr County Library",
+                "Starr County Open Lab",
+                "Technical Services",
+                "Technology CLE",
+                "Technology Library",
+                "Technology Open Lab"
+            ]
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "type": "text",
+            "required": true,
+            "default": "All",
+            "controlled.options": [
+                "All",
+                "Closed",
+                "Open"
+            ]
+        },
+        {
+            "name": "start_date",
+            "displayName": "Start Date",
+            "type": "date",
+            "required": false
+        },
+        {
+            "name": "end_date",
+            "displayName": "End Date",
+            "type": "date",
+            "required": false
+        }
+    ]
+}

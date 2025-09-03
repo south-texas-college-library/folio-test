@@ -6,7 +6,7 @@ CREATE FUNCTION get_hotspot_checkouts(
     service_point text DEFAULT NULL,
     status text DEFAULT NULL,
     start_date date DEFAULT '2025-01-01',
-    end_date date DEFAULT '2050-01-01',
+    end_date date DEFAULT '2050-01-01'
 )
 RETURNS TABLE(
     title text,

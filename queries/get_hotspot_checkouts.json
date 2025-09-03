@@ -47,13 +47,13 @@
         },
         {
             "name": "start_date",
-            "displayName": "Start Date",
+            "displayName": "Start Date (Optional)",
             "type": "date",
             "required": false
         },
         {
             "name": "end_date",
-            "displayName": "End Date",
+            "displayName": "End Date (Optional)",
             "type": "date",
             "required": false
         }

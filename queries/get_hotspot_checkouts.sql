@@ -1,4 +1,4 @@
---ldp:function get_hotspot_checkouts
+--metadb:function get_hotspot_checkouts
 
 DROP FUNCTION IF EXISTS get_hotspot_checkouts;
 

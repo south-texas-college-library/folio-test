@@ -41,7 +41,7 @@ SELECT
     folio_derived.items_holdings_instances.title as title,
     folio_derived.items_holdings_instances.call_number as call_number,
     string_agg(DISTINCT split_part(folio_derived.instance_identifiers.identifier, ' : ', 1), ', ') AS identifier,
-	(SELECT MAX(val::text) FROM unnest(string_to_array(REGEXP_REPLACE(folio_derived.instance_publication.date_of_publication, '[^0-9,]', '', 'g'), ',')) as val) as publication_date,
+	(SELECT MAX(val[1]::text) from regexp_matches(folio_derived.instance_publication.date_of_publication, '\d{4}', 'g') as val) as publication_date,
 	folio_derived.holdings_ext.permanent_location_name as holdings_permanent_location,
     folio_derived.items_holdings_instances.barcode as item_barcode,
     folio_derived.locations_libraries.location_name as location_name,

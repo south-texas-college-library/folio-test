@@ -47,20 +47,17 @@ FROM
     folio_derived.items_holdings_instances
     LEFT JOIN folio_derived.holdings_ext ON folio_derived.holdings_ext.holdings_id = folio_derived.items_holdings_instances.holdings_id
     LEFT JOIN folio_derived.item_ext ON folio_derived.item_ext.item_id = folio_derived.items_holdings_instances.item_id
-    LEFT JOIN folio_source_record.marc__t ON folio_source_record.marc__t.instance_id = folio_derived.items_holdings_instances.instance_id
-    LEFT JOIN folio_derived.instance_identifiers ON folio_derived.instance_identifiers.instance_id = folio_derived.items_holdings_instances.instance_id
-    LEFT JOIN folio_derived.instance_subjects ON folio_derived.instance_subjects.instance_id = folio_derived.items_holdings_instances.instance_id
-    LEFT JOIN folio_derived.instance_publication ON folio_derived.instance_publication.instance_id = folio_derived.items_holdings_instances.instance_id
-    LEFT JOIN folio_derived.item_notes ON folio_derived.item_notes.item_id = folio_derived.items_holdings_instances.item_id
-    LEFT JOIN folio_derived.locations_libraries ON folio_derived.locations_libraries.location_id = folio_derived.item_ext.effective_location_id
-    LEFT JOIN folio_derived.loans_renewal_count ON folio_derived.loans_renewal_count.item_id = folio_derived.items_holdings_instances.item_id
-    LEFT JOIN folio_derived.instance_statistical_codes ON folio_derived.instance_statistical_codes.instance_id = folio_derived.items_holdings_instances.instance_id
     LEFT JOIN folio_derived.instance_contributors on folio_derived.instance_contributors.instance_id = folio_derived.items_holdings_instances.instance_id
+    LEFT JOIN folio_derived.instance_publication ON folio_derived.instance_publication.instance_id = folio_derived.items_holdings_instances.instance_id
+    LEFT JOIN folio_derived.instance_identifiers ON folio_derived.instance_identifiers.instance_id = folio_derived.items_holdings_instances.instance_id
+    LEFT JOIN folio_derived.instance_statistical_codes ON folio_derived.instance_statistical_codes.instance_id = folio_derived.items_holdings_instances.instance_id
+    LEFT JOIN folio_derived.instance_subjects ON folio_derived.instance_subjects.instance_id = folio_derived.items_holdings_instances.instance_id
+    LEFT JOIN folio_derived.item_notes ON folio_derived.item_notes.item_id = folio_derived.items_holdings_instances.item_id
     LEFT JOIN folio_derived.item_statistical_codes on folio_derived.item_statistical_codes.item_id = folio_derived.items_holdings_instances.item_id
+    LEFT JOIN folio_derived.loans_renewal_count ON folio_derived.loans_renewal_count.item_id = folio_derived.items_holdings_instances.item_id
+    LEFT JOIN folio_derived.locations_libraries ON folio_derived.locations_libraries.location_id = folio_derived.item_ext.effective_location_id
 WHERE 
-    folio_source_record.marc__t.field = '650'
-    AND folio_source_record.marc__t.content ILIKE '%' || subject || '%'
-    AND folio_derived.instance_identifiers.identifier_type_name IN ('ISBN', 'ISSN')
+    to_tsvector(replace(jsonb_extract_path_text(folio_derived.instance_subjects.subjects::jsonb, 'value'), '--', ' ')) @@ websearch_to_tsquery(subject)
     AND folio_derived.item_notes.note_type_name = 'Price'
     AND (folio_derived.instance_contributors.contributor_ordinality = 1 OR folio_derived.instance_contributors.contributor_ordinality IS NULL)
     AND (folio_derived.instance_publication.publication_ordinality = 1 OR folio_derived.instance_publication.publication_ordinality IS NULL)

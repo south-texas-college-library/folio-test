@@ -81,8 +81,7 @@ GROUP BY
     folio_derived.items_holdings_instances.material_type_name,
     folio_derived.items_holdings_instances.title,
     folio_derived.loans_renewal_count.num_renewals,
-    folio_derived.locations_libraries.campus_name,
-    folio_source_record.marc__t.content
+    folio_derived.locations_libraries.campus_name
 $$
 LANGUAGE SQL
 STABLE

@@ -25,12 +25,13 @@ RETURNS TABLE(
     subtype TEXT
 )
 AS $$
-SELECT DISTINCT
+SELECT
 	folio_derived.items_holdings_instances.title AS title,
     folio_derived.locations_libraries.campus_name as campus,
     folio_derived.instance_contributors.contributor_name as author,
     folio_derived.items_holdings_instances.call_number as call_number,
     folio_derived.items_holdings_instances.barcode as item_barcode,
+    string_agg(DISTINCT folio_derived.item_notes.note, ', ') FILTER (WHERE folio_derived.item_notes.note_type_name = 'Price') AS price,
     folio_derived.items_holdings_instances.material_type_name as item_type,
     folio_derived.items_holdings_instances.cataloged_date as date_created,
 	(SELECT MAX(val[1]::text) from regexp_matches(folio_derived.instance_publication.date_of_publication, '\d{4}', 'g') as val) as publication_date,

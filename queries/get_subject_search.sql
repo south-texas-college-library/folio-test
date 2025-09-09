@@ -11,6 +11,7 @@ RETURNS TABLE(
     author TEXT,
     call_number TEXT,
     item_barcode TEXT,
+    price TEXT,
     item_type TEXT,
     date_created TEXT,
     publication_date TEXT,

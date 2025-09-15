@@ -27,9 +27,9 @@ SELECT
 	folio_derived.loans_items.loan_due_date,
 	folio_derived.loans_items.loan_return_date
 FROM folio_derived.loans_items
-WHERE (item_barcode IS NULL OR barcode = item_barcode)
-AND loan_date BETWEEN start_date AND end_date
-AND (item_status = "All" OR item_status = item_status)
+WHERE (item_barcode IS NULL OR folio_derived.loans_items.barcode = item_barcode)
+AND folio_derived.loans_items.loan_date BETWEEN start_date AND end_date
+AND (item_status = "All" OR item_status = folio_derived.loans_items.item_status)
 $$
 LANGUAGE SQL
 STABLE

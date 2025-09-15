@@ -1,7 +1,7 @@
 {
     "displayName": "Circulation - Hotspot Checkouts",
     "description": "Create a list of all Hotspot Checkouts from a service point within a date range.",
-    "instructions": "Select a service point and input the date range or leave the date fields empty",
+    "instructions": "Select a service point and input the date range.",
     "parameters": [
         {
             "name": "service_point",

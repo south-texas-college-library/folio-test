@@ -1,6 +1,6 @@
 {
     "displayName": "Circulation - Hotspot Checkouts",
-    "description": "Create a list of all Hotspot Checkouts from a service point within a given period of time.",
+    "description": "Create a list of all Hotspot Checkouts from a service point within a date range.",
     "instructions": "Select a service point and input a start date of the period of time and/or an end date or leave the date fields empty",
     "parameters": [
         {

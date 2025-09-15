@@ -4,7 +4,7 @@ DROP FUNCTION IF EXISTS get_subject_search;
 
 CREATE FUNCTION get_subject_search(
     subject text DEFAULT NULL
-)
+) 
 RETURNS TABLE(
     title TEXT,
     campus TEXT,

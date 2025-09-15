@@ -14,6 +14,7 @@
             "displayName": "Item Status",
             "type": "text",
             "required": true,
+            "default": "All",
             "controlled.options": [
                 "All",
                 "Aged to lost",
@@ -24,8 +25,7 @@
                 "Unavailable",
                 "Unknown",
                 "Withdrawn"
-            ],
-            "default": "All"
+            ]
         },
         {
             "name": "start_date",

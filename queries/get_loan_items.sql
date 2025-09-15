@@ -29,7 +29,7 @@ SELECT
 FROM folio_derived.loans_items
 WHERE (item_barcode IS NULL OR folio_derived.loans_items.barcode = item_barcode)
 AND folio_derived.loans_items.loan_date BETWEEN start_date AND end_date
-AND (item_status = "All" OR item_status = folio_derived.loans_items.item_status)
+AND (item_status = 'All' OR item_status = folio_derived.loans_items.item_status)
 $$
 LANGUAGE SQL
 STABLE

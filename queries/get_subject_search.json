@@ -1,7 +1,7 @@
 {
     "displayName": "Collection - Subject Search",
     "description": "This report lists items that include the input term as one of their subjects.",
-    "instructions": "Input a subject for items you would like to search for",
+    "instructions": "Input the subject(s) for items you would like to search for. To search for multiple subjects, type OR between each subject.",
     "parameters": [
         {
             "name": "subject",

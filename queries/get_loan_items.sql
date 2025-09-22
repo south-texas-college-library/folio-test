@@ -15,8 +15,7 @@ RETURNS TABLE(
     item_status text,
     loan_date timestamptz,
     loan_due_date timestamptz,
-    loan_return_date timestamptz,
-    renewal_count integer
+    loan_return_date timestamptz
 )
 AS $$
     SELECT 
@@ -26,8 +25,7 @@ AS $$
         folio_derived.loans_items.item_status,
         folio_derived.loans_items.loan_date,
         folio_derived.loans_items.loan_due_date,
-        folio_derived.loans_items.loan_return_date,
-        folio_derived.loans_items.renewal_count
+        folio_derived.loans_items.loan_return_date
     FROM folio_derived.loans_items
     WHERE 
         (item_barcode IS NULL OR folio_derived.loans_items.barcode = item_barcode)

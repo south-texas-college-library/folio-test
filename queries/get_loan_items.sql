@@ -36,7 +36,6 @@ AS $$
         AND (item_status = 'All' OR folio_derived.loans_items.item_status = item_status)
         AND (folio_derived.loans_items.loan_date BETWEEN start_date AND end_date)
         AND (folio_derived.loans_items.patron_group_name = 'Student')
-        AND (folio_derived.loans_items.loan_status = 'Open')
 $$
 LANGUAGE SQL
 STABLE

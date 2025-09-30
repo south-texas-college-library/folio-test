@@ -8,22 +8,22 @@ CREATE FUNCTION get_callnumber(
 )
 RETURNS TABLE(
     created_date timestamptz,
-    effective_location_name,
-    call_number,
+    effective_location_name text,
+    call_number text,
     barcode text,
-    title,
-    material_type_name,
-    cataloged_date,
-    statistical_code_name,
-    item_status,
+    title text,
+    material_type_name text,
+    cataloged_date text,
+    statistical_code_name text,
+    item_status text,
     loan_date timestamptz,
     loan_return_date timestamptz,
-    renewal_count,
-    total_checkouts,
-    item_notes,
-    instance_identifiers,
-    instance_publication,
-    subjects
+    renewal_count integer,
+    total_checkouts integer,
+    item_notes text,
+    instance_identifiers text,
+    instance_publication text,
+    subjects text
 )
 AS $$
     select
@@ -55,7 +55,20 @@ AS $$
         join
         folio_derived.loans_items on folio_derived.loans_items.item_id = folio_derived.item_ext.item_id
     where items_holdings_instances.call_number between start_cn and end_cn
-    group by item_ext.created_date, effective_location_name, items_holdings_instances.call_number, items_holdings_instances.barcode, title, items_holdings_instances.material_type_name, cataloged_date, item_statistical_codes.statistical_code_name, loans_items.item_status, loans_items.loan_date, loans_items.loan_return_date, loans_items.renewal_count, items_holdings_instances.item_id
+    group by 
+    item_ext.created_date,
+    effective_location_name, 
+    items_holdings_instances.call_number, 
+    items_holdings_instances.barcode, 
+    title, 
+    items_holdings_instances.material_type_name, 
+    cataloged_date, 
+    item_statistical_codes.statistical_code_name, 
+    loans_items.item_status, 
+    loans_items.loan_date, 
+    loans_items.loan_return_date, 
+    loans_items.renewal_count, 
+    items_holdings_instances.item_id
     order by call_number;
 $$
 LANGUAGE SQL

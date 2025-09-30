@@ -56,8 +56,7 @@ AS $$
         folio_derived.loans_items on folio_derived.loans_items.item_id = folio_derived.item_ext.item_id
     where items_holdings_instances.call_number between start_cn and end_cn
     group by item_ext.created_date, effective_location_name, items_holdings_instances.call_number, items_holdings_instances.barcode, title, items_holdings_instances.material_type_name, cataloged_date, item_statistical_codes.statistical_code_name, loans_items.item_status, loans_items.loan_date, loans_items.loan_return_date, loans_items.renewal_count, items_holdings_instances.item_id
-    order by call_number
-    ;
+    order by call_number;
 $$
 LANGUAGE SQL
 STABLE

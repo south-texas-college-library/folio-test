@@ -1,5 +1,5 @@
 {
-    "displayName": "Circulation - Call Number",
+    "displayName": "Collection - Call Number",
     "description": "Retrieves call number items",
     "instructions": "Input the call number range",
     "parameters": [

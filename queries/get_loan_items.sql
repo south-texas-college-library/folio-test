@@ -17,8 +17,7 @@ RETURNS TABLE(
     loan_due_date timestamptz,
     loan_return_date timestamptz,
     renewal_count integer,
-    material_type_name text,
-    permanent_loan_type_name text
+    material_type_name text
 )
 AS $$
     SELECT 
@@ -30,15 +29,13 @@ AS $$
         folio_derived.loans_items.loan_due_date,
         folio_derived.loans_items.loan_return_date,
         folio_derived.loans_items.renewal_count,
-        folio_derived.loans_items.material_type_name,
-        folio_derived.loans_items.permanent_loan_type_name
+        folio_derived.loans_items.material_type_name
     FROM folio_derived.loans_items
     WHERE 
         (item_barcode IS NULL OR folio_derived.loans_items.barcode = item_barcode)
         AND (item_status = 'All' OR folio_derived.loans_items.item_status = item_status)
         AND (folio_derived.loans_items.loan_date BETWEEN start_date AND end_date)
-        AND (folio_derived.loans_items.patron_group_name = 'Employee')
-        AND (folio_derived.loans_items.permanent_loan_type_name = 'Default')
+        AND (folio_derived.loans_items.patron_group_name = 'Student')
 $$
 LANGUAGE SQL
 STABLE

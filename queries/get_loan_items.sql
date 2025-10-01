@@ -17,8 +17,7 @@ RETURNS TABLE(
     loan_due_date timestamptz,
     loan_return_date timestamptz,
     renewal_count integer,
-    material_type_name text,
-    loan_policy_name text
+    material_type_name text
 )
 AS $$
     SELECT 
@@ -31,7 +30,6 @@ AS $$
         folio_derived.loans_items.loan_return_date,
         folio_derived.loans_items.renewal_count,
         folio_derived.loans_items.material_type_name
-        folio_derived.loans_items.loan_policy_name
     FROM folio_derived.loans_items
     WHERE 
         (item_barcode IS NULL OR folio_derived.loans_items.barcode = item_barcode)

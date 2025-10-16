@@ -212,37 +212,6 @@
             ]
         },
         {
-            "name": "item_status",
-            "displayName": "Item Status",
-            "type": "text",
-            "required": true,
-            "default": "All",
-            "controlled.options": [
-                "All",
-                "Aged to lost",
-                "Available",
-                "Awaiting delivery",
-                "Awaiting pickup",
-                "Checked out",
-                "Claimed returned",
-                "Declared lost",
-                "In process",
-                "In process (non-requestable)",
-                "In transit",
-                "Intellectual item",
-                "Long missing",
-                "Lost and paid",
-                "Missing",
-                "On order",
-                "Order closed",
-                "Paged",
-                "Restricted",
-                "Unavailable",
-                "Unknown",
-                "Withdrawn"
-            ]
-        },
-        {
             "name": "permanent_loan_type",
             "displayName": "Permanent Loan Type",
             "type": "text",

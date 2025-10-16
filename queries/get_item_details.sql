@@ -134,7 +134,6 @@ WHERE
     AND (holdings_location = 'All' OR hl.name = holdings_location)
 	AND (item_location = 'All' OR il.name = item_location)
     AND (material_type = 'All' OR mt.name = material_type)
-	AND (item_status = 'All' OR it.jsonb -> 'status' ->> 'name' = item_status)
     AND (permanent_loan_type = 'All' OR plt.name = permanent_loan_type)
 	AND (temporary_loan_type = 'All' OR tlt.name = temporary_loan_type)
     AND (subtype = 'All' OR finsc.jsonb ->> 'name' = subtype)

@@ -97,28 +97,28 @@ itsc AS (
 		LEFT JOIN folio_inventory.statistical_code isc ON isc.id = (sc.jsonb #>> '{}')::uuid
 )
 SELECT
-    ins.jsonb ->> 'title' AS "Title",
-    hr.call_number AS "Call Number",
-    fp.pub_date AS "Publication Date",
-    it.jsonb ->> 'barcode' AS "Barcode",
-    ins.jsonb ->> 'catalogedDate' AS "Date Created",
-    hl.name AS "Holdings Location",
-    il.name AS "Items Location",
-    mt.name AS "Material Type",
-    sp.name AS "Service Point",
-    it.jsonb -> 'status' ->> 'name' AS "Item Status",
-    plt.name AS "Permanent Loan Type",
-    tlt.name AS "Temporary Loan Type",
-    COALESCE(fl.checkouts, 0) AS "Checkouts",
-    COALESCE(fl.renewals, 0) AS "Renewals",
-    fc.name AS "Author",
-    fp.publisher AS "Publisher",
-    fs.subjects AS "Subjects",
-    fi.identifiers AS "Identifiers",
-    fn.price AS "Price",
-    lc.name AS "Campus",
-    insc.name AS "Subtype",
-    itsc.name AS "Fund"
+    ins.jsonb ->> 'title' AS title,
+    hr.call_number AS call_number,
+    fp.pub_date AS publication_date,
+    it.jsonb ->> 'barcode' AS barcode,
+    ins.jsonb ->> 'catalogedDate' AS date_created,
+    hl.name AS home_location,
+    il.name AS current_location,
+    mt.name AS material_type,
+    sp.name AS service_point,
+    it.jsonb -> 'status' ->> 'name' AS item_status,
+    plt.name AS permanent_loan_type,
+    tlt.name AS temporary_loan_type,
+    COALESCE(fl.checkouts, 0) AS checkouts,
+    COALESCE(fl.renewals, 0) AS renewals,
+    fc.name AS author,
+    fp.publisher AS publisher,
+    fs.subjects AS subjects,
+    fi.identifiers AS identifiers,
+    fn.price AS price,
+    lc.name AS campus,
+    insc.name AS subtype,
+    itsc.name AS fund
 FROM
 	folio_inventory.instance ins
 	LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
@@ -140,7 +140,6 @@ FROM
 	LEFT JOIN itsc ON itsc.id = it.id
 WHERE 
 	to_tsvector(replace(fs.subjects, '--', ' ')) @@ websearch_to_tsquery(subject)
-
 $$
 LANGUAGE SQL
 STABLE

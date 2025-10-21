@@ -64,7 +64,7 @@ fn AS (
 fp AS (
 	SELECT
 		ins.id AS id,
-		GREATEST(ins.jsonb -> 'publicationPeriod' -> 'start', ins.jsonb -> 'publicationPeriod' -> 'end') AS pub_date,
+		GREATEST(ins.jsonb -> 'publicationPeriod' ->> 'start', ins.jsonb -> 'publicationPeriod' ->> 'end') AS pub_date,
 		p.jsonb ->> 'publisher' AS publisher
 	FROM folio_inventory.instance ins
 	CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'publication') WITH ORDINALITY AS p (jsonb)
@@ -98,27 +98,23 @@ itsc AS (
 )
 SELECT
     ins.jsonb ->> 'title' AS title,
+    lc.name AS campus,
+    fc.name AS author,
     hr.call_number AS call_number,
-    fp.pub_date AS publication_date,
     it.jsonb ->> 'barcode' AS barcode,
+    fn.price AS price,
+    mt.name AS material_type,
     ins.jsonb ->> 'catalogedDate' AS date_created,
+    fp.pub_date AS publication_date,
+    fi.identifiers AS identifiers,
     hl.name AS home_location,
     il.name AS current_location,
-    mt.name AS material_type,
-    sp.name AS service_point,
-    it.jsonb -> 'status' ->> 'name' AS item_status,
-    plt.name AS permanent_loan_type,
-    tlt.name AS temporary_loan_type,
+    fs.subjects AS subjects,
     COALESCE(fl.checkouts, 0) AS checkouts,
     COALESCE(fl.renewals, 0) AS renewals,
-    fc.name AS author,
     fp.publisher AS publisher,
-    fs.subjects AS subjects,
-    fi.identifiers AS identifiers,
-    fn.price AS price,
-    lc.name AS campus,
     insc.name AS subtype,
-    itsc.name AS fund
+    itsc.name AS fund  
 FROM
 	folio_inventory.instance ins
 	LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id

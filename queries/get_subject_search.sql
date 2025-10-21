@@ -26,64 +26,121 @@ RETURNS TABLE(
     subtype TEXT
 )
 AS $$
+WITH fc AS (
+	SELECT
+		ins.id AS id,
+		c.jsonb ->> 'name' AS name
+	FROM folio_inventory.instance ins
+	CROSS JOIN LATERAL jsonb_array_elements(ins.jsonb -> 'contributors') WITH ORDINALITY AS c (jsonb)
+	WHERE c.ordinality = 1
+),
+fi AS (
+	SELECT 
+		id,
+		STRING_AGG(DISTINCT SPLIT_PART(i ->> 'value', ' : ', 1), ', ') AS identifiers
+	FROM folio_inventory.instance ins
+	CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'identifiers') AS i
+	GROUP BY
+		ins.id
+),
+fl AS (
+	SELECT
+		l.item_id AS id,
+		COUNT(l.id) AS checkouts,
+		l.renewal_count AS renewals
+	FROM folio_circulation.loan__t l
+	LEFT JOIN folio_inventory.item i ON i.id = l.item_id
+	GROUP BY l.item_id, l.renewal_count
+),
+fn AS (
+	SELECT 
+		it.id AS id,
+		n ->> 'note' AS price
+	FROM folio_inventory.item it
+	CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(it.jsonb -> 'notes') AS n
+	LEFT JOIN folio_inventory.item_note_type nt ON nt.id = (n ->> 'itemNoteTypeId')::uuid
+	WHERE nt.jsonb ->> 'name' = 'Price'
+),
+fp AS (
+	SELECT
+		ins.id AS id,
+		GREATEST(ins.jsonb -> 'publicationPeriod' -> 'start', ins.jsonb -> 'publicationPeriod' -> 'end') AS pub_date,
+		p.jsonb ->> 'publisher' AS publisher
+	FROM folio_inventory.instance ins
+	CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'publication') WITH ORDINALITY AS p (jsonb)
+	WHERE p.ordinality = 1
+),
+fs AS (
+	SELECT
+		ins.id AS id,
+		STRING_AGG(s.jsonb ->> 'value', ', ') AS subjects
+	FROM folio_inventory.instance ins
+	CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'subjects') AS s
+	GROUP BY ins.id
+),
+insc AS (
+	SELECT
+		ins.id AS id,
+		isc.jsonb ->> 'name' AS name
+	FROM 
+		folio_inventory.instance AS ins
+		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'statisticalCodeIds') AS sc
+		LEFT JOIN folio_inventory.statistical_code isc ON isc.id = (sc.jsonb #>> '{}')::uuid
+),
+itsc AS (
+	SELECT
+		it.id AS id,
+		isc.jsonb ->> 'name' AS name
+	FROM 
+		folio_inventory.item AS it
+		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(it.jsonb -> 'statisticalCodeIds') AS sc
+		LEFT JOIN folio_inventory.statistical_code isc ON isc.id = (sc.jsonb #>> '{}')::uuid
+)
 SELECT
-	folio_derived.items_holdings_instances.title AS title,
-    folio_derived.locations_libraries.campus_name as campus,
-    folio_derived.instance_contributors.contributor_name as author,
-    folio_derived.items_holdings_instances.call_number as call_number,
-    folio_derived.items_holdings_instances.barcode as item_barcode,
-    string_agg(DISTINCT folio_derived.item_notes.note, ', ') FILTER (WHERE folio_derived.item_notes.note_type_name = 'Price') AS price,
-    folio_derived.items_holdings_instances.material_type_name as item_type,
-    folio_derived.items_holdings_instances.cataloged_date as date_created,
-	(SELECT MAX(val[1]::text) from regexp_matches(folio_derived.instance_publication.date_of_publication, '\d{4}', 'g') as val) as publication_date,
-    string_agg(DISTINCT split_part(folio_derived.instance_identifiers.identifier, ' : ', 1), ', ') AS identifier,
-    folio_derived.holdings_ext.permanent_location_name as home_location,
-    folio_derived.item_ext.effective_location_name as current_location,
-    string_agg(DISTINCT jsonb_extract_path_text(folio_derived.instance_subjects.subjects::jsonb, 'value'), ', ') AS subjects,
-    folio_derived.loans_renewal_count.num_renewals as total_renewals,
-    (SELECT COUNT(*) FROM folio_derived.loans_items WHERE folio_derived.loans_items.item_id = folio_derived.items_holdings_instances.item_id) AS total_checkouts,
-    folio_derived.instance_statistical_codes.statistical_code_name as content,
-    folio_derived.instance_publication.publisher as publisher,
-    folio_derived.item_statistical_codes.statistical_code_name as subtype
-FROM 
-    folio_derived.items_holdings_instances
-    LEFT JOIN folio_derived.holdings_ext ON folio_derived.holdings_ext.holdings_id = folio_derived.items_holdings_instances.holdings_id
-    LEFT JOIN folio_derived.item_ext ON folio_derived.item_ext.item_id = folio_derived.items_holdings_instances.item_id
-    LEFT JOIN folio_derived.instance_contributors on folio_derived.instance_contributors.instance_id = folio_derived.items_holdings_instances.instance_id
-    LEFT JOIN folio_derived.instance_publication ON folio_derived.instance_publication.instance_id = folio_derived.items_holdings_instances.instance_id
-    LEFT JOIN folio_derived.instance_identifiers ON folio_derived.instance_identifiers.instance_id = folio_derived.items_holdings_instances.instance_id
-    LEFT JOIN folio_derived.instance_statistical_codes ON folio_derived.instance_statistical_codes.instance_id = folio_derived.items_holdings_instances.instance_id
-    LEFT JOIN folio_derived.instance_subjects ON folio_derived.instance_subjects.instance_id = folio_derived.items_holdings_instances.instance_id
-    LEFT JOIN folio_derived.item_notes ON folio_derived.item_notes.item_id = folio_derived.items_holdings_instances.item_id
-    LEFT JOIN folio_derived.item_statistical_codes on folio_derived.item_statistical_codes.item_id = folio_derived.items_holdings_instances.item_id
-    LEFT JOIN folio_derived.loans_renewal_count ON folio_derived.loans_renewal_count.item_id = folio_derived.items_holdings_instances.item_id
-    LEFT JOIN folio_derived.locations_libraries ON folio_derived.locations_libraries.location_id = folio_derived.item_ext.effective_location_id
+    ins.jsonb ->> 'title' AS "Title",
+    hr.call_number AS "Call Number",
+    fp.pub_date AS "Publication Date",
+    it.jsonb ->> 'barcode' AS "Barcode",
+    ins.jsonb ->> 'catalogedDate' AS "Date Created",
+    hl.name AS "Holdings Location",
+    il.name AS "Items Location",
+    mt.name AS "Material Type",
+    sp.name AS "Service Point",
+    it.jsonb -> 'status' ->> 'name' AS "Item Status",
+    plt.name AS "Permanent Loan Type",
+    tlt.name AS "Temporary Loan Type",
+    COALESCE(fl.checkouts, 0) AS "Checkouts",
+    COALESCE(fl.renewals, 0) AS "Renewals",
+    fc.name AS "Author",
+    fp.publisher AS "Publisher",
+    fs.subjects AS "Subjects",
+    fi.identifiers AS "Identifiers",
+    fn.price AS "Price",
+    lc.name AS "Campus",
+    insc.name AS "Subtype",
+    itsc.name AS "Fund"
+FROM
+	folio_inventory.instance ins
+	LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
+	LEFT JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
+	LEFT JOIN folio_inventory.loan_type__t plt ON plt.id = it.permanentloantypeid
+	LEFT JOIN folio_inventory.loan_type__t tlt ON tlt.id = it.temporaryloantypeid
+	LEFT JOIN folio_inventory.location__t hl ON hl.id = hr.permanent_location_id
+	LEFT JOIN folio_inventory.location__t il ON il.id = it.effectivelocationid
+	LEFT JOIN folio_inventory.material_type__t mt ON mt.id = it.materialtypeid
+	LEFT JOIN folio_inventory.service_point__t sp ON sp.id = hl.primary_service_point
+	LEFT JOIN folio_inventory.loccampus__t lc ON lc.id = hl.campus_id	
+	LEFT JOIN fc ON fc.id = ins.id
+	LEFT JOIN fi ON fi.id = ins.id
+	LEFT JOIN fl ON fl.id = it.id
+	LEFT JOIN fn ON fn.id = it.id
+	LEFT JOIN fp ON fp.id = ins.id
+	LEFT JOIN fs ON fs.id = ins.id
+	LEFT JOIN insc ON insc.id = ins.id
+	LEFT JOIN itsc ON itsc.id = it.id
 WHERE 
-    to_tsvector(replace(jsonb_extract_path_text(folio_derived.instance_subjects.subjects::jsonb, 'value'), '--', ' ')) @@ websearch_to_tsquery(subject)
-    AND folio_derived.item_notes.note_type_name = 'Price'
-    AND (folio_derived.instance_contributors.contributor_ordinality = 1 OR folio_derived.instance_contributors.contributor_ordinality IS NULL)
-    AND (folio_derived.instance_publication.publication_ordinality = 1 OR folio_derived.instance_publication.publication_ordinality IS NULL)
-GROUP BY
-    folio_derived.holdings_ext.permanent_location_name,
-    folio_derived.instance_contributors.contributor_name,
-    folio_derived.instance_publication.date_of_publication,
-    folio_derived.instance_publication.publication_ordinality,
-    folio_derived.instance_publication.publication_place,
-    folio_derived.instance_publication.publication_role,
-    folio_derived.instance_publication.publisher,
-    folio_derived.instance_statistical_codes.statistical_code_name,
-    folio_derived.item_ext.effective_location_name,
-    folio_derived.item_notes.note,
-    folio_derived.item_statistical_codes.statistical_code_name,
-    folio_derived.items_holdings_instances.barcode,
-    folio_derived.items_holdings_instances.call_number,
-    folio_derived.items_holdings_instances.cataloged_date,
-    folio_derived.items_holdings_instances.instance_id,
-    folio_derived.items_holdings_instances.item_id,
-    folio_derived.items_holdings_instances.material_type_name,
-    folio_derived.items_holdings_instances.title,
-    folio_derived.loans_renewal_count.num_renewals,
-    folio_derived.locations_libraries.campus_name
+	to_tsvector(replace(fs.subjects, '--', ' ')) @@ websearch_to_tsquery(subject)
+
 $$
 LANGUAGE SQL
 STABLE

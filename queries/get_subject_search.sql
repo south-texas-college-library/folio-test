@@ -32,12 +32,13 @@ WITH fc AS (
 		c.jsonb ->> 'name' AS name
 	FROM folio_inventory.instance ins
 	CROSS JOIN LATERAL jsonb_array_elements(ins.jsonb -> 'contributors') WITH ORDINALITY AS c (jsonb)
-	WHERE c.ordinality = 1
+	WHERE 
+		c.ordinality = 1
 ),
 fi AS (
 	SELECT 
 		id,
-		STRING_AGG(DISTINCT SPLIT_PART(i ->> 'value', ' : ', 1), ', ') AS identifiers
+		STRING_AGG(DISTINCT SPLIT_PART(i.jsonb ->> 'value', ' : ', 1), ', ') AS identifiers
 	FROM folio_inventory.instance ins
 	CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'identifiers') AS i
 	GROUP BY
@@ -50,7 +51,9 @@ fl AS (
 		l.renewal_count AS renewals
 	FROM folio_circulation.loan__t l
 	LEFT JOIN folio_inventory.item i ON i.id = l.item_id
-	GROUP BY l.item_id, l.renewal_count
+	GROUP BY 
+		l.item_id, 
+		l.renewal_count
 ),
 fn AS (
 	SELECT 
@@ -59,7 +62,8 @@ fn AS (
 	FROM folio_inventory.item it
 	CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(it.jsonb -> 'notes') AS n
 	LEFT JOIN folio_inventory.item_note_type nt ON nt.id = (n ->> 'itemNoteTypeId')::uuid
-	WHERE nt.jsonb ->> 'name' = 'Price'
+	WHERE 
+		nt.jsonb ->> 'name' = 'Price'
 ),
 fp AS (
 	SELECT
@@ -68,7 +72,8 @@ fp AS (
 		p.jsonb ->> 'publisher' AS publisher
 	FROM folio_inventory.instance ins
 	CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'publication') WITH ORDINALITY AS p (jsonb)
-	WHERE p.ordinality = 1
+	WHERE 
+		p.ordinality = 1
 ),
 fs AS (
 	SELECT
@@ -76,25 +81,23 @@ fs AS (
 		STRING_AGG(s.jsonb ->> 'value', ', ') AS subjects
 	FROM folio_inventory.instance ins
 	CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'subjects') AS s
-	GROUP BY ins.id
+	GROUP BY 
+		ins.id
 ),
-insc AS (
+sc AS (
 	SELECT
 		ins.id AS id,
-		isc.jsonb ->> 'name' AS name
+		it.id AS item_id,
+		insc.jsonb ->> 'name' AS instance_code,
+		itsc.jsonb ->> 'name' AS item_code
 	FROM 
-		folio_inventory.instance AS ins
-		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'statisticalCodeIds') AS sc
-		LEFT JOIN folio_inventory.statistical_code isc ON isc.id = (sc.jsonb #>> '{}')::uuid
-),
-itsc AS (
-	SELECT
-		it.id AS id,
-		isc.jsonb ->> 'name' AS name
-	FROM 
-		folio_inventory.item AS it
-		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(it.jsonb -> 'statisticalCodeIds') AS sc
-		LEFT JOIN folio_inventory.statistical_code isc ON isc.id = (sc.jsonb #>> '{}')::uuid
+		folio_inventory.instance ins
+		LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
+		LEFT JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
+		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'statisticalCodeIds') AS finsc
+		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(it.jsonb -> 'statisticalCodeIds') AS fitsc
+		LEFT JOIN folio_inventory.statistical_code insc ON insc.id = (finsc #>> '{}')::uuid
+		LEFT JOIN folio_inventory.statistical_code itsc ON itsc.id = (fitsc #>> '{}')::uuid
 )
 SELECT
     ins.jsonb ->> 'title' AS title,
@@ -113,8 +116,8 @@ SELECT
     COALESCE(fl.checkouts, 0) AS checkouts,
     COALESCE(fl.renewals, 0) AS renewals,
     fp.publisher AS publisher,
-    insc.name AS subtype,
-    itsc.name AS fund  
+    sc.instance_code AS subtype,
+    sc.item_code AS fund  
 FROM
 	folio_inventory.instance ins
 	LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
@@ -132,8 +135,7 @@ FROM
 	LEFT JOIN fn ON fn.id = it.id
 	LEFT JOIN fp ON fp.id = ins.id
 	LEFT JOIN fs ON fs.id = ins.id
-	LEFT JOIN insc ON insc.id = ins.id
-	LEFT JOIN itsc ON itsc.id = it.id
+	LEFT JOIN sc ON it.id = it.id
 WHERE 
 	to_tsvector(replace(fs.subjects, '--', ' ')) @@ websearch_to_tsquery(subject)
 $$

@@ -21,8 +21,8 @@ RETURNS TABLE(
     subjects TEXT,
     total_renewals INTEGER,
     total_checkouts INTEGER,
+	publisher TEXT,
     content TEXT,
-    publisher TEXT,
     subtype TEXT
 )
 AS $$
@@ -98,8 +98,6 @@ sc AS (
 			JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'statisticalCodeIds'), 
 			JSONB_ARRAY_ELEMENTS(it.jsonb -> 'statisticalCodeIds')
 		) x(y, z)
-		--CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'statisticalCodeIds') AS finsc
-		--CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(it.jsonb -> 'statisticalCodeIds') AS fitsc
 		LEFT JOIN folio_inventory.statistical_code insc ON insc.id = (y #>> '{}')::uuid
 		LEFT JOIN folio_inventory.statistical_code itsc ON itsc.id = (z #>> '{}')::uuid
 )

@@ -94,10 +94,14 @@ sc AS (
 		folio_inventory.instance ins
 		LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
 		LEFT JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
-		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'statisticalCodeIds') AS finsc
-		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(it.jsonb -> 'statisticalCodeIds') AS fitsc
-		LEFT JOIN folio_inventory.statistical_code insc ON insc.id = (finsc #>> '{}')::uuid
-		LEFT JOIN folio_inventory.statistical_code itsc ON itsc.id = (fitsc #>> '{}')::uuid
+		CROSS JOIN LATERAL ROWS FROM (
+			JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'statisticalCodeIds'), 
+			JSONB_ARRAY_ELEMENTS(it.jsonb -> 'statisticalCodeIds')
+		) x(y, z)
+		--CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'statisticalCodeIds') AS finsc
+		--CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(it.jsonb -> 'statisticalCodeIds') AS fitsc
+		LEFT JOIN folio_inventory.statistical_code insc ON insc.id = (y #>> '{}')::uuid
+		LEFT JOIN folio_inventory.statistical_code itsc ON itsc.id = (z #>> '{}')::uuid
 )
 SELECT
     ins.jsonb ->> 'title' AS title,
@@ -135,7 +139,7 @@ FROM
 	LEFT JOIN fn ON fn.id = it.id
 	LEFT JOIN fp ON fp.id = ins.id
 	LEFT JOIN fs ON fs.id = ins.id
-	LEFT JOIN sc ON it.id = it.id
+	LEFT JOIN sc ON sc.id = it.id
 WHERE 
 	to_tsvector(replace(fs.subjects, '--', ' ')) @@ websearch_to_tsquery(subject)
 $$

@@ -73,21 +73,22 @@ fn AS (
 	GROUP BY
 		it.id
 ),
-insc AS (
+sc AS (
 	SELECT
-		id,
-		(statcodes.jsonb #>> '{}')::uuid AS code
+		ins.id AS id,
+		it.id AS item_id,
+		insc.jsonb ->> 'name' AS instance_code,
+		itsc.jsonb ->> 'name' AS item_code
 	FROM 
-		folio_inventory.instance AS ins
-		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'statisticalCodeIds') AS statcodes
-),
-itsc AS (
-	select
-		id,
-		(statcodes.jsonb #>> '{}')::uuid AS code
-	FROM 
-		folio_inventory.item AS it
-		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(it.jsonb -> 'statisticalCodeIds') AS statcodes
+		folio_inventory.instance ins
+		LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
+		LEFT JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
+		CROSS JOIN LATERAL ROWS FROM (
+			JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'statisticalCodeIds'), 
+			JSONB_ARRAY_ELEMENTS(it.jsonb -> 'statisticalCodeIds')
+		) x(y, z)
+		LEFT JOIN folio_inventory.statistical_code insc ON insc.id = (y #>> '{}')::uuid
+		LEFT JOIN folio_inventory.statistical_code itsc ON itsc.id = (z #>> '{}')::uuid
 )
 SELECT
     ins.jsonb ->> 'title' AS "Title",
@@ -110,8 +111,8 @@ SELECT
     fn.inventory_date AS "Inventory Date",
     fn.po_number AS "PO Number",
     fn.invoice AS "Invoice",
-    finsc.jsonb ->> 'name' AS "Subtype",
-    fitsc.jsonb ->> 'name' AS "Fund"
+    sc.instance_code AS "Subtype",
+    sc.item_code AS "Fund" 
 FROM
 	folio_inventory.instance ins
 	LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
@@ -125,10 +126,7 @@ FROM
 	LEFT JOIN fi ON fi.id = ins.id
 	LEFT JOIN fp ON fp.id = ins.id
 	LEFT JOIN fn ON fn.id = it.id
-	LEFT JOIN insc ON insc.id = ins.id
-	LEFT JOIN itsc ON itsc.id = it.id
-	LEFT JOIN folio_inventory.statistical_code finsc ON finsc.id = insc.code
-	LEFT JOIN folio_inventory.statistical_code fitsc ON fitsc.id = itsc.code
+	LEFT JOIN sc ON sc.id = it.id
 WHERE
 	(service_point = 'All' OR sp.name = service_point)
     AND (holdings_location = 'All' OR hl.name = holdings_location)
@@ -136,7 +134,7 @@ WHERE
     AND (material_type = 'All' OR mt.name = material_type)
     AND (permanent_loan_type = 'All' OR plt.name = permanent_loan_type)
 	AND (temporary_loan_type = 'All' OR tlt.name = temporary_loan_type)
-    AND (subtype = 'All' OR finsc.jsonb ->> 'name' = subtype)
+    AND (subtype = 'All' OR sc.instance_code = subtype)
 $$
 LANGUAGE SQL
 STABLE

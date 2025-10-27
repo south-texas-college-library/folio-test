@@ -138,7 +138,7 @@ codes AS (
 SELECT
     ins.title AS title,
     hr.call_number AS call_number,
-    fi.identifiers AS identifiers,
+    fi.identifier AS identifiers,
     fp.pub_date AS publication_date,
     it.barcode AS item_barcode,
     hr.location AS holdings_location,

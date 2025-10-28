@@ -37,16 +37,16 @@ RETURNS TABLE(
     subtype TEXT
 )
 AS $$
-WITH inventory as (
+WITH inventory AS (
 	SELECT
-		ins.id as instance_id,
-		ins.jsonb as instance_jsonb,
-		hr.id as hr_id,
+		ins.id AS instance_id,
+		ins.jsonb AS instance_jsonb,
+		hr.id AS hr_id,
 		hr.call_number AS call_number,
 		hl.name AS holdings_location,
 		sp.name AS service_point,
-		it.id as item_id,
-	    it.jsonb as item_jsonb,
+		it.id AS item_id,
+	    it.jsonb AS item_jsonb,
 	    il.name AS item_location,
 	    mt.name AS material_type,
 	    plt.name AS permanent_loan_type,
@@ -64,7 +64,7 @@ WITH inventory as (
 	WHERE
 		(service_point = 'All' OR sp.name = service_point)
 		AND (holdings_location = 'All' OR hl.name = holdings_location)
-		(item_location = 'All' OR il.name = item_location)
+		AND (item_location = 'All' OR il.name = item_location)
 		AND (material_type = 'All' OR mt.name = material_type)
 		AND (permanent_loan_type = 'All' OR plt.name = permanent_loan_type)
 		AND (temporary_loan_type = 'All' OR tlt.name = temporary_loan_type)

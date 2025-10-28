@@ -39,10 +39,10 @@ RETURNS TABLE(
 AS $$
 WITH instance AS (
 	SELECT
-		i.id,
-		i.jsonb ->> 'title' AS title
+		ins.id,
+		ins.jsonb
 	FROM 
-		folio_inventory.instance i
+		folio_inventory.instance ins
 ),
 holding AS (
 	SELECT
@@ -63,8 +63,7 @@ item AS (
 	SELECT
 		it.id,
 		it.holdingsrecordid AS hrid,
-	    it.jsonb ->> 'barcode' AS barcode,
-	    it.jsonb -> 'status' ->> 'name' AS item_status,
+	    it.jsonb,
 	    il.name AS location,
 	    mt.name AS material_type,
 	    plt.name AS permanent_loan_type,
@@ -83,8 +82,8 @@ item AS (
 ),
 identifiers AS (
 	SELECT 
-		id,
-		STRING_AGG(distinct SPLIT_PART(i ->> 'value', ' : ', 1), ', ') AS identifier
+		ins.id,
+		STRING_AGG(SPLIT_PART(i ->> 'value', ' : ', 1), ', ') AS identifier
 	FROM 
 		folio_inventory.instance ins
 		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'identifiers') AS i
@@ -101,14 +100,14 @@ publication AS (
 notes AS (
 	SELECT 
 		it.id,
-		STRING_AGG(DISTINCT n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Circulation Note') AS circulation_note,
-		STRING_AGG(DISTINCT n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Public Note') AS public_note,
-	    STRING_AGG(DISTINCT n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Staff Note') AS staff_notes,
-	    STRING_AGG(DISTINCT n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Ownership') AS ownership,
-	    STRING_AGG(DISTINCT n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Price') AS price,
-	    STRING_AGG(DISTINCT n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Inventory Date') AS inventory_date,
-	    STRING_AGG(DISTINCT n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'PO Number') AS po_number,
-	    STRING_AGG(DISTINCT n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Invoice') AS invoice
+		STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Circulation Note') AS circulation_note,
+		STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Public Note') AS public_note,
+	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Staff Note') AS staff_notes,
+	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Ownership') AS ownership,
+	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Price') AS price,
+	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Inventory Date') AS inventory_date,
+	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'PO Number') AS po_number,
+	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Invoice') AS invoice
 	FROM 
 		folio_inventory.item it
 		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(it.jsonb -> 'notes') AS n
@@ -136,16 +135,16 @@ codes AS (
 	    (subtype = 'All' OR insc.name = subtype)
 )
 SELECT
-    ins.title AS title,
+    ins.jsonb ->> 'title'  AS title,
     hr.call_number AS call_number,
     fi.identifier AS identifiers,
     fp.pub_date AS publication_date,
-    it.barcode AS item_barcode,
+    it.jsonb ->> 'barcode' AS item_barcode,
     hr.location AS holdings_location,
     it.location AS item_location,
     it.material_type AS material_type,
     hr.service_point AS service_point,
-    it.item_status AS item_status,
+    it.jsonb -> 'status' ->> 'name' AS item_status,
     it.permanent_loan_type AS permanent_loan_type,
     it.temporary_loan_type AS temporary_loan_type,
     fn.circulation_note AS circulation_note,

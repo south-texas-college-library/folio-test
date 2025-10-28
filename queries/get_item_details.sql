@@ -37,44 +37,33 @@ RETURNS TABLE(
     subtype TEXT
 )
 AS $$
-WITH instance AS (
+WITH inventory as (
 	SELECT
-		ins.id,
-		ins.jsonb
-	FROM 
-		folio_inventory.instance ins
-),
-holding AS (
-	SELECT
-		hr.id,
-		hr.instance_id AS instance_id,
+		ins.id as instance_id,
+		ins.jsonb as instance_jsonb,
+		hr.id as hr_id,
 		hr.call_number AS call_number,
-		hl.name AS location,
-		sp.name AS service_point
-	FROM 
-		folio_inventory.holdings_record__t hr
-		LEFT JOIN folio_inventory.location__t hl ON hl.id = hr.permanent_location_id
-		LEFT JOIN folio_inventory.service_point__t sp ON sp.id = hl.primary_service_point
-	WHERE
-		(service_point = 'All' OR sp.name = service_point)
-		AND (holdings_location = 'All' OR hl.name = holdings_location)
-),
-item AS (
-	SELECT
-		it.id,
-		it.holdingsrecordid AS hrid,
-	    it.jsonb,
-	    il.name AS location,
+		hl.name AS holdings_location,
+		sp.name AS service_point,
+		it.id as item_id,
+	    it.jsonb as item_jsonb,
+	    il.name AS item_location,
 	    mt.name AS material_type,
 	    plt.name AS permanent_loan_type,
     	tlt.name AS temporary_loan_type
 	FROM 
-		folio_inventory.item it
+		folio_inventory.instance ins
+		LEFT JOIN folio_inventory.holdings_record__t hr on hr.instance_id = ins.id
+		LEFT JOIN folio_inventory.item it on it.holdingsrecordid = hr.id
+		LEFT JOIN folio_inventory.location__t hl ON hl.id = hr.permanent_location_id
+		LEFT JOIN folio_inventory.service_point__t sp ON sp.id = hl.primary_service_point
 		LEFT JOIN folio_inventory.loan_type__t plt ON plt.id = it.permanentloantypeid
 		LEFT JOIN folio_inventory.loan_type__t tlt ON tlt.id = it.temporaryloantypeid
 		LEFT JOIN folio_inventory.location__t il ON il.id = it.effectivelocationid
 		LEFT JOIN folio_inventory.material_type__t mt ON mt.id = it.materialtypeid
 	WHERE
+		(service_point = 'All' OR sp.name = service_point)
+		AND (holdings_location = 'All' OR hl.name = holdings_location)
 		(item_location = 'All' OR il.name = item_location)
 		AND (material_type = 'All' OR mt.name = material_type)
 		AND (permanent_loan_type = 'All' OR plt.name = permanent_loan_type)
@@ -82,13 +71,13 @@ item AS (
 ),
 identifiers AS (
 	SELECT 
-		ins.id,
-		STRING_AGG(SPLIT_PART(i ->> 'value', ' : ', 1), ', ') AS identifier
+		inv.instance_id,
+		STRING_AGG(DISTINCT SPLIT_PART(i ->> 'value', ' : ', 1), ', ') AS identifier
 	FROM 
-		folio_inventory.instance ins
-		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'identifiers') AS i
+		inventory inv
+		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(inv.instance_jsonb -> 'identifiers') AS i
 	GROUP BY
-		ins.id
+		inv.instance_id
 ),
 publication AS (
 	SELECT
@@ -99,7 +88,7 @@ publication AS (
 ),
 notes AS (
 	SELECT 
-		it.id,
+		inv.item_id,
 		STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Circulation Note') AS circulation_note,
 		STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Public Note') AS public_note,
 	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Staff Note') AS staff_notes,
@@ -108,12 +97,12 @@ notes AS (
 	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Inventory Date') AS inventory_date,
 	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'PO Number') AS po_number,
 	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Invoice') AS invoice
-	FROM 
-		folio_inventory.item it
-		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(it.jsonb -> 'notes') AS n
+	FROM
+		inventory inv
+		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(inv.item_jsonb -> 'notes') AS n
 		LEFT JOIN folio_inventory.item_note_type nt on nt.id = (n ->> 'itemNoteTypeId')::uuid
 	GROUP BY
-		it.id
+		inv.item_id
 ),
 codes AS (
 	SELECT
@@ -135,18 +124,18 @@ codes AS (
 	    (subtype = 'All' OR insc.name = subtype)
 )
 SELECT
-    ins.jsonb ->> 'title'  AS title,
-    hr.call_number AS call_number,
+    inv.instance_jsonb ->> 'title'  AS title,
+    inv.call_number AS call_number,
     fi.identifier AS identifiers,
     fp.pub_date AS publication_date,
-    it.jsonb ->> 'barcode' AS item_barcode,
-    hr.location AS holdings_location,
-    it.location AS item_location,
-    it.material_type AS material_type,
-    hr.service_point AS service_point,
-    it.jsonb -> 'status' ->> 'name' AS item_status,
-    it.permanent_loan_type AS permanent_loan_type,
-    it.temporary_loan_type AS temporary_loan_type,
+    inv.item_jsonb ->> 'barcode' AS item_barcode,
+    inv.holdings_location AS holdings_location,
+    inv.item_location AS item_location,
+    inv.material_type AS material_type,
+    inv.service_point AS service_point,
+    inv.item_jsonb -> 'status' ->> 'name' AS item_status,
+    inv.permanent_loan_type AS permanent_loan_type,
+    inv.temporary_loan_type AS temporary_loan_type,
     fn.circulation_note AS circulation_note,
     fn.public_note AS public_note,
     fn.staff_notes AS staff_notes,
@@ -158,13 +147,11 @@ SELECT
     fc.instance_code AS fund,
     fc.item_code AS subtype
 FROM 
-	instance ins
-	LEFT JOIN holding hr ON hr.instance_id = ins.id
-	LEFT JOIN item it ON it.hrid = hr.id
-	LEFT JOIN identifiers fi ON fi.id = ins.id
-	LEFT JOIN publication fp ON fp.id = ins.id
-	LEFT JOIN notes fn ON fn.id = it.id
-	LEFT JOIN codes fc ON fc.item_id = it.id
+	inventory inv
+	LEFT JOIN identifiers fi ON fi.instance_id = inv.instance_id
+	LEFT JOIN publication fp ON fp.id = inv.instance_id
+	LEFT JOIN notes fn ON fn.item_id = inv.item_id
+	LEFT JOIN codes fc ON fc.item_id = inv.item_id
 $$
 LANGUAGE SQL
 STABLE

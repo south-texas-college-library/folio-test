@@ -140,7 +140,9 @@ SELECT
     fn.price,
     fn.inventory_date,
     fn.po_number,
-    fn.invoice
+    fn.invoice,
+	fc.instance_code,
+    fc.item_code
 FROM 
 	inventory inv
 	LEFT JOIN identifiers fi ON fi.id = inv.instance_id

@@ -85,6 +85,7 @@ codes AS (
 SELECT
 	ins.jsonb ->> 'title' AS title,
 	hr.call_number AS call_number,
+    fi.identifier AS identifiers,
     GREATEST(ins.jsonb -> 'publicationPeriod' ->> 'start', ins.jsonb -> 'publicationPeriod' ->> 'end') AS publication_date,
     it.jsonb ->> 'barcode' AS item_barcode,
     hl.name AS holdings_location,

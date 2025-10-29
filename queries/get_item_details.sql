@@ -117,8 +117,6 @@ codes AS (
 		) x(y, z)
 		LEFT JOIN folio_inventory.statistical_code__t insc ON insc.id = (y #>> '{}')::uuid
 		LEFT JOIN folio_inventory.statistical_code__t itsc ON itsc.id = (z #>> '{}')::uuid
-	WHERE
-	    (subtype = 'All' OR insc.name = subtype)
 )
 SELECT  
     inv.title,
@@ -148,6 +146,8 @@ FROM
 	LEFT JOIN identifiers fi ON fi.id = inv.instance_id
 	LEFT JOIN notes fn ON fn.id = inv.item_id
 	LEFT JOIN codes fc ON fc.item_id = inv.item_id
+WHERE
+	(subtype = 'All' OR insc.name = subtype)
 $$
 LANGUAGE SQL
 STABLE

@@ -41,20 +41,24 @@ WITH inventory AS (
 	SELECT
 		ins.id AS instance_id,
 		ins.jsonb AS instance_jsonb,
-		hr.id AS hr_id,
-		hr.call_number AS call_number,
-		hl.name AS holdings_location,
-		sp.name AS service_point,
-		it.id AS item_id,
+	    hr.id AS hr_id,
+	    it.id AS item_id,
 	    it.jsonb AS item_jsonb,
+		ins.jsonb ->> 'title' AS title,
+		hr.call_number AS call_number,
+	    GREATEST(ins.jsonb -> 'publicationPeriod' ->> 'start', ins.jsonb -> 'publicationPeriod' ->> 'end') AS publication_date,
+	    it.jsonb ->> 'barcode' AS item_barcode,
+	    hl.name AS holdings_location,
 	    il.name AS item_location,
 	    mt.name AS material_type,
+	    sp.name AS service_point,
+	    it.jsonb -> 'status' ->> 'name' AS item_status,
 	    plt.name AS permanent_loan_type,
-    	tlt.name AS temporary_loan_type
+	    tlt.name AS temporary_loan_type
 	FROM 
 		folio_inventory.instance ins
-		LEFT JOIN folio_inventory.holdings_record__t hr on hr.instance_id = ins.id
-		LEFT JOIN folio_inventory.item it on it.holdingsrecordid = hr.id
+		LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
+		LEFT JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
 		LEFT JOIN folio_inventory.location__t hl ON hl.id = hr.permanent_location_id
 		LEFT JOIN folio_inventory.service_point__t sp ON sp.id = hl.primary_service_point
 		LEFT JOIN folio_inventory.loan_type__t plt ON plt.id = it.permanentloantypeid
@@ -71,7 +75,7 @@ WITH inventory AS (
 ),
 identifiers AS (
 	SELECT 
-		inv.instance_id,
+		inv.instance_id AS id,
 		STRING_AGG(DISTINCT SPLIT_PART(i ->> 'value', ' : ', 1), ', ') AS identifier
 	FROM 
 		inventory inv
@@ -79,16 +83,9 @@ identifiers AS (
 	GROUP BY
 		inv.instance_id
 ),
-publication AS (
-	SELECT
-		ins.id,
-		GREATEST(ins.jsonb -> 'publicationPeriod' ->> 'start', ins.jsonb -> 'publicationPeriod' ->> 'end') AS pub_date	
-	FROM 
-		folio_inventory.instance ins
-),
 notes AS (
-	SELECT 
-		inv.item_id,
+	SELECT
+		inv.item_id AS id,
 		STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Circulation Note') AS circulation_note,
 		STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Public Note') AS public_note,
 	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Staff Note') AS staff_notes,
@@ -100,7 +97,7 @@ notes AS (
 	FROM
 		inventory inv
 		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(inv.item_jsonb -> 'notes') AS n
-		LEFT JOIN folio_inventory.item_note_type nt on nt.id = (n ->> 'itemNoteTypeId')::uuid
+		LEFT JOIN folio_inventory.item_note_type nt ON nt.id = (n ->> 'itemNoteTypeId')::uuid
 	GROUP BY
 		inv.item_id
 ),
@@ -123,34 +120,31 @@ codes AS (
 	WHERE
 	    (subtype = 'All' OR insc.name = subtype)
 )
-SELECT
-    inv.instance_jsonb ->> 'title'  AS title,
-    inv.call_number AS call_number,
-    fi.identifier AS identifiers,
-    fp.pub_date AS publication_date,
-    inv.item_jsonb ->> 'barcode' AS item_barcode,
-    inv.holdings_location AS holdings_location,
-    inv.item_location AS item_location,
-    inv.material_type AS material_type,
-    inv.service_point AS service_point,
-    inv.item_jsonb -> 'status' ->> 'name' AS item_status,
-    inv.permanent_loan_type AS permanent_loan_type,
-    inv.temporary_loan_type AS temporary_loan_type,
-    fn.circulation_note AS circulation_note,
-    fn.public_note AS public_note,
-    fn.staff_notes AS staff_notes,
-    fn.ownership AS ownership,
-    fn.price AS price,
-    fn.inventory_date AS inventory_date,
-    fn.po_number AS po_number,
-    fn.invoice AS invoice,
-    fc.instance_code AS fund,
-    fc.item_code AS subtype
+SELECT  
+    inv.title,
+	inv.call_number,
+    fi.identifier,
+    inv.publication_date,
+    inv.item_barcode,
+    inv.holdings_location,
+    inv.item_location,
+    inv.material_type,
+    inv.service_point,
+    inv.item_status,
+    inv.permanent_loan_type,
+    inv.temporary_loan_type,
+    fn.circulation_note,
+    fn.public_note,
+    fn.staff_notes,
+    fn.ownership,
+    fn.price,
+    fn.inventory_date,
+    fn.po_number,
+    fn.invoice
 FROM 
 	inventory inv
-	LEFT JOIN identifiers fi ON fi.instance_id = inv.instance_id
-	LEFT JOIN publication fp ON fp.id = inv.instance_id
-	LEFT JOIN notes fn ON fn.item_id = inv.item_id
+	LEFT JOIN identifiers fi ON fi.id = inv.instance_id
+	LEFT JOIN notes fn ON fn.id = inv.item_id
 	LEFT JOIN codes fc ON fc.item_id = inv.item_id
 $$
 LANGUAGE SQL

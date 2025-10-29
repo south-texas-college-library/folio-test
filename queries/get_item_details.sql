@@ -147,7 +147,7 @@ FROM
 	LEFT JOIN notes fn ON fn.id = inv.item_id
 	LEFT JOIN codes fc ON fc.item_id = inv.item_id
 WHERE
-	(subtype = 'All' OR insc.name = subtype)
+	(subtype = 'All' OR fc.instance_code = subtype)
 $$
 LANGUAGE SQL
 STABLE

@@ -37,7 +37,7 @@ RETURNS TABLE(
     subtype TEXT
 )
 AS $$
-WITH identifiers AS (
+WITH identifiers AS MATERIALIZED (
 	SELECT 
 		ins.id AS id,
 		STRING_AGG(distinct SPLIT_PART(i ->> 'value', ' : ', 1), ', ') AS identifier

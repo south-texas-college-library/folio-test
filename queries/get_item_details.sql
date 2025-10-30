@@ -64,28 +64,11 @@ notes AS MATERIALIZED (
 		LEFT JOIN folio_inventory.item_note_type nt ON nt.id = (n ->> 'itemNoteTypeId')::uuid
 	GROUP BY
 		it.id
-),
-codes AS MATERIALIZED (
-	SELECT
-		ins.id AS id,
-		it.id AS item_id,
-		insc.name AS instance_code,
-		itsc.name AS item_code
-	FROM 
-		folio_inventory.instance ins
-		LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
-		LEFT JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
-		CROSS JOIN LATERAL ROWS FROM (
-			JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'statisticalCodeIds'), 
-			JSONB_ARRAY_ELEMENTS(it.jsonb -> 'statisticalCodeIds')
-		) x(y, z)
-		LEFT JOIN folio_inventory.statistical_code__t insc ON insc.id = (y #>> '{}')::uuid
-		LEFT JOIN folio_inventory.statistical_code__t itsc ON itsc.id = (z #>> '{}')::uuid
 )
 SELECT
 	ins.jsonb ->> 'title' AS title,
 	hr.call_number AS call_number,
-    fi.identifier AS identifiers,
+	fi.identifier AS identifiers,
     GREATEST(ins.jsonb -> 'publicationPeriod' ->> 'start', ins.jsonb -> 'publicationPeriod' ->> 'end') AS publication_date,
     it.jsonb ->> 'barcode' AS item_barcode,
     hl.name AS holdings_location,
@@ -103,8 +86,8 @@ SELECT
     fn.inventory_date,
     fn.po_number,
     fn.invoice,
-    fc.instance_code AS fund,
-    fc.item_code AS subtype
+    insc.jsonb ->> 'name' AS subtype,
+	itsc.jsonb ->> 'name' AS fund
 FROM 
 	folio_inventory.instance ins
 	LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
@@ -115,9 +98,10 @@ FROM
 	LEFT JOIN folio_inventory.loan_type__t tlt ON tlt.id = it.temporaryloantypeid
 	LEFT JOIN folio_inventory.location__t il ON il.id = it.effectivelocationid
 	LEFT JOIN folio_inventory.material_type__t mt ON mt.id = it.materialtypeid
+	LEFT JOIN folio_inventory.statistical_code insc ON insc.id = (jsonb_path_query_first(ins.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
+	LEFT JOIN folio_inventory.statistical_code itsc ON itsc.id = (jsonb_path_query_first(it.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
 	LEFT JOIN identifiers fi ON fi.id = ins.id
 	LEFT JOIN notes fn ON fn.id = it.id
-	LEFT JOIN codes fc ON fc.item_id = it.id
 WHERE
 	(service_point = 'All' OR sp.name = service_point)
 	AND (holdings_location = 'All' OR hl.name = holdings_location)
@@ -125,7 +109,7 @@ WHERE
 	AND (material_type = 'All' OR mt.name = material_type)
 	AND (permanent_loan_type = 'All' OR plt.name = permanent_loan_type)
 	AND (temporary_loan_type = 'All' OR tlt.name = temporary_loan_type)
-	AND (subtype = 'All' OR fc.instance_code = subtype)
+	AND (subtype = 'All' OR insc.jsonb ->> 'name' = subtype)
 $$
 LANGUAGE SQL
 STABLE

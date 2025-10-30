@@ -26,16 +26,7 @@ RETURNS TABLE(
     subtype TEXT
 )
 AS $$
-WITH fc AS (
-	SELECT
-		ins.id AS id,
-		c.jsonb ->> 'name' AS name
-	FROM folio_inventory.instance ins
-	CROSS JOIN LATERAL jsonb_array_elements(ins.jsonb -> 'contributors') WITH ORDINALITY AS c (jsonb)
-	WHERE 
-		c.ordinality = 1
-),
-fi AS (
+WITH fi AS (
 	SELECT 
 		id,
 		STRING_AGG(DISTINCT SPLIT_PART(i.jsonb ->> 'value', ' : ', 1), ', ') AS identifiers
@@ -64,62 +55,26 @@ fn AS (
 	LEFT JOIN folio_inventory.item_note_type nt ON nt.id = (n ->> 'itemNoteTypeId')::uuid
 	WHERE 
 		nt.jsonb ->> 'name' = 'Price'
-),
-fp AS (
-	SELECT
-		ins.id AS id,
-		GREATEST(ins.jsonb -> 'publicationPeriod' ->> 'start', ins.jsonb -> 'publicationPeriod' ->> 'end') AS pub_date,
-		p.jsonb ->> 'publisher' AS publisher
-	FROM folio_inventory.instance ins
-	CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'publication') WITH ORDINALITY AS p (jsonb)
-	WHERE 
-		p.ordinality = 1
-),
-fs AS (
-	SELECT
-		ins.id AS id,
-		STRING_AGG(s.jsonb ->> 'value', ', ') AS subjects
-	FROM folio_inventory.instance ins
-	CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'subjects') AS s
-	GROUP BY 
-		ins.id
-),
-sc AS (
-	SELECT
-		ins.id AS id,
-		it.id AS item_id,
-		insc.jsonb ->> 'name' AS instance_code,
-		itsc.jsonb ->> 'name' AS item_code
-	FROM 
-		folio_inventory.instance ins
-		LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
-		LEFT JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
-		CROSS JOIN LATERAL ROWS FROM (
-			JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'statisticalCodeIds'), 
-			JSONB_ARRAY_ELEMENTS(it.jsonb -> 'statisticalCodeIds')
-		) x(y, z)
-		LEFT JOIN folio_inventory.statistical_code insc ON insc.id = (y #>> '{}')::uuid
-		LEFT JOIN folio_inventory.statistical_code itsc ON itsc.id = (z #>> '{}')::uuid
 )
 SELECT
     ins.jsonb ->> 'title' AS title,
     lc.name AS campus,
-    fc.name AS author,
+    jsonb_path_query_first(ins.jsonb, '$.contributors[*].name') #>> '{}' AS author,	
     hr.call_number AS call_number,
     it.jsonb ->> 'barcode' AS barcode,
     fn.price AS price,
     mt.name AS material_type,
     ins.jsonb ->> 'catalogedDate' AS date_created,
-    fp.pub_date AS publication_date,
+    GREATEST(ins.jsonb -> 'publicationPeriod' ->> 'start', ins.jsonb -> 'publicationPeriod' ->> 'end') AS publication_date,
     fi.identifiers AS identifiers,
     hl.name AS home_location,
     il.name AS current_location,
-    fs.subjects AS subjects,
+	REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[\[\]"]', '', 'g') AS subjects,
     COALESCE(fl.checkouts, 0) AS checkouts,
     COALESCE(fl.renewals, 0) AS renewals,
-    fp.publisher AS publisher,
-    sc.instance_code AS subtype,
-    sc.item_code AS fund  
+	jsonb_path_query_first(ins.jsonb, '$.publication[*].publisher') #>> '{}' AS publisher,
+    insc.jsonb ->> 'name' AS subtype,
+	itsc.jsonb ->> 'name' AS fund
 FROM
 	folio_inventory.instance ins
 	LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
@@ -130,16 +85,14 @@ FROM
 	LEFT JOIN folio_inventory.location__t il ON il.id = it.effectivelocationid
 	LEFT JOIN folio_inventory.material_type__t mt ON mt.id = it.materialtypeid
 	LEFT JOIN folio_inventory.service_point__t sp ON sp.id = hl.primary_service_point
-	LEFT JOIN folio_inventory.loccampus__t lc ON lc.id = hl.campus_id	
-	LEFT JOIN fc ON fc.id = ins.id
+	LEFT JOIN folio_inventory.loccampus__t lc ON lc.id = hl.campus_id
+	LEFT JOIN folio_inventory.statistical_code insc ON insc.id = (jsonb_path_query_first(ins.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
+	LEFT JOIN folio_inventory.statistical_code itsc ON itsc.id = (jsonb_path_query_first(it.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
 	LEFT JOIN fi ON fi.id = ins.id
 	LEFT JOIN fl ON fl.id = it.id
 	LEFT JOIN fn ON fn.id = it.id
-	LEFT JOIN fp ON fp.id = ins.id
-	LEFT JOIN fs ON fs.id = ins.id
-	LEFT JOIN sc ON sc.id = it.id
 WHERE 
-	to_tsvector(replace(fs.subjects, '--', ' ')) @@ websearch_to_tsquery(subject)
+	to_tsvector(REPLACE(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[\[\]"]', '', 'g'), '--', ' ')) @@ websearch_to_tsquery(subject)
 $$
 LANGUAGE SQL
 STABLE

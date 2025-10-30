@@ -47,7 +47,7 @@ WITH identifiers AS (
 	GROUP BY
 		ins.id
 ),
-notes AS (
+notes AS MATERIALIZED (
 	SELECT
 		it.id AS id,
 		STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Circulation Note') AS circulation_note,

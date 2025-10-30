@@ -5,7 +5,7 @@
     "parameters": [
         {
             "name": "service_point",
-            "displayName": "Service Point",
+            "displayName": "Service Point (Test)",
             "type": "text",
             "required": false,
             "default": "All",
@@ -34,8 +34,8 @@
             ]
         },
         {
-            "name": "holdings_location (Test)",
-            "displayName": "Holdings Location",
+            "name": "holdings_location",
+            "displayName": "Holdings Location (Test)",
             "type": "text",
             "required": false,
             "default": "All",

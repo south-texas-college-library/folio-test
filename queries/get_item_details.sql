@@ -65,7 +65,7 @@ notes AS MATERIALIZED (
 	GROUP BY
 		it.id
 ),
-codes AS (
+codes AS MATERIALIZED (
 	SELECT
 		ins.id AS id,
 		it.id AS item_id,

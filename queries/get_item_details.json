@@ -5,7 +5,7 @@
     "parameters": [
         {
             "name": "service_point",
-            "displayName": "Service Point",
+            "displayName": "Service Point (Test)",
             "type": "text",
             "required": false,
             "default": "All",

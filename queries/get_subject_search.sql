@@ -26,18 +26,9 @@ RETURNS TABLE(
     subtype TEXT
 )
 AS $$
-WITH fi AS (
-	SELECT 
-		id,
-		STRING_AGG(DISTINCT SPLIT_PART(i.jsonb ->> 'value', ' : ', 1), ', ') AS identifiers
-	FROM folio_inventory.instance ins
-	CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'identifiers') AS i
-	GROUP BY
-		ins.id
-),
-fl AS (
+WITH loans AS (
 	SELECT
-		l.item_id AS id,
+		l.item_id AS item_id,
 		COUNT(l.id) AS checkouts,
 		l.renewal_count AS renewals
 	FROM folio_circulation.loan__t l
@@ -45,16 +36,6 @@ fl AS (
 	GROUP BY 
 		l.item_id, 
 		l.renewal_count
-),
-fn AS (
-	SELECT 
-		it.id AS id,
-		n ->> 'note' AS price
-	FROM folio_inventory.item it
-	CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(it.jsonb -> 'notes') AS n
-	LEFT JOIN folio_inventory.item_note_type nt ON nt.id = (n ->> 'itemNoteTypeId')::uuid
-	WHERE 
-		nt.jsonb ->> 'name' = 'Price'
 )
 SELECT
     ins.jsonb ->> 'title' AS title,
@@ -62,16 +43,16 @@ SELECT
     jsonb_path_query_first(ins.jsonb, '$.contributors[*].name') #>> '{}' AS author,	
     hr.call_number AS call_number,
     it.jsonb ->> 'barcode' AS barcode,
-    fn.price AS price,
+	NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "1fceb11c-7a89-49d6-8ef0-2a42c58556a2").note') #>> '{}', '[\[\]"]', '', 'g'), '') AS price,
     mt.name AS material_type,
     ins.jsonb ->> 'catalogedDate' AS date_created,
     GREATEST(ins.jsonb -> 'publicationPeriod' ->> 'start', ins.jsonb -> 'publicationPeriod' ->> 'end') AS publication_date,
-    fi.identifiers AS identifiers,
+	REGEXP_REPLACE(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.identifiers[*].value') #>> '{}', ' :.*?\$\d+\.\d{2}', '', 'g'), '[\[\]"]', '', 'g') AS identifiers,
     hl.name AS home_location,
     il.name AS current_location,
 	REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[\[\]"]', '', 'g') AS subjects,
-    COALESCE(fl.checkouts, 0) AS checkouts,
-    COALESCE(fl.renewals, 0) AS renewals,
+    COALESCE(loans.checkouts, 0) AS checkouts,
+    COALESCE(loans.renewals, 0) AS renewals,
 	jsonb_path_query_first(ins.jsonb, '$.publication[*].publisher') #>> '{}' AS publisher,
     insc.jsonb ->> 'name' AS subtype,
 	itsc.jsonb ->> 'name' AS fund
@@ -88,9 +69,7 @@ FROM
 	LEFT JOIN folio_inventory.loccampus__t lc ON lc.id = hl.campus_id
 	LEFT JOIN folio_inventory.statistical_code insc ON insc.id = (jsonb_path_query_first(ins.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
 	LEFT JOIN folio_inventory.statistical_code itsc ON itsc.id = (jsonb_path_query_first(it.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
-	LEFT JOIN fi ON fi.id = ins.id
-	LEFT JOIN fl ON fl.id = it.id
-	LEFT JOIN fn ON fn.id = it.id
+	LEFT JOIN loans ON loans.item_id = it.id
 WHERE 
 	to_tsvector(REPLACE(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[\[\]"]', '', 'g'), '--', ' ')) @@ websearch_to_tsquery(subject)
 $$

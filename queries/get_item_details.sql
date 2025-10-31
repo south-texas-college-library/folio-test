@@ -33,42 +33,14 @@ RETURNS TABLE(
     inventory_date TEXT,
     po_number TEXT,
     invoice TEXT,
-    fund TEXT,
-    subtype TEXT
+	subtype TEXT,
+    fund TEXT
 )
 AS $$
-WITH identifiers AS MATERIALIZED (
-	SELECT 
-		ins.id AS id,
-		STRING_AGG(distinct SPLIT_PART(i ->> 'value', ' : ', 1), ', ') AS identifier
-	FROM 
-		folio_inventory.instance ins
-		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(ins.jsonb -> 'identifiers') AS i
-	GROUP BY
-		ins.id
-),
-notes AS MATERIALIZED (
-	SELECT
-		it.id AS id,
-		STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Circulation Note') AS circulation_note,
-		STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Public Note') AS public_note,
-	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Staff Note') AS staff_notes,
-	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Ownership') AS ownership,
-	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Price') AS price,
-	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Inventory Date') AS inventory_date,
-	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'PO Number') AS po_number,
-	    STRING_AGG(n ->> 'note', ', ') FILTER (WHERE nt.jsonb ->> 'name' = 'Invoice') AS invoice
-	FROM
-		folio_inventory.item it
-		CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(it.jsonb -> 'notes') AS n
-		LEFT JOIN folio_inventory.item_note_type nt ON nt.id = (n ->> 'itemNoteTypeId')::uuid
-	GROUP BY
-		it.id
-)
 SELECT
 	ins.jsonb ->> 'title' AS title,
 	hr.call_number AS call_number,
-	fi.identifier AS identifiers,
+	REGEXP_REPLACE(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.identifiers[*].value') #>> '{}', ' :.*?\$\d+\.\d{2}', '', 'g'), '[\[\]"]', '', 'g') AS identifiers,
     GREATEST(ins.jsonb -> 'publicationPeriod' ->> 'start', ins.jsonb -> 'publicationPeriod' ->> 'end') AS publication_date,
     it.jsonb ->> 'barcode' AS item_barcode,
     hl.name AS holdings_location,
@@ -78,14 +50,14 @@ SELECT
     it.jsonb -> 'status' ->> 'name' AS item_status,
     plt.name AS permanent_loan_type,
     tlt.name AS temporary_loan_type,
-    fn.circulation_note,
-    fn.public_note,
-    fn.staff_notes,
-    fn.ownership,
-    fn.price,
-    fn.inventory_date,
-    fn.po_number,
-    fn.invoice,
+	REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "5366d4d4-8775-4cf4-a00f-77c82f0ca3bf").note') #>> '{}', '[\[\]"]', '', 'g') AS circulation_note,
+	REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "b6b35579-ee2b-4973-8e0d-ebc05bab0dab").note') #>> '{}', '[\[\]"]', '', 'g') AS public_note,
+	REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "86e6410d-4c8b-4853-8054-bd5e563e9760").note') #>> '{}', '[\[\]"]', '', 'g') AS staff_notes,
+	REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "34207e4e-5cd7-4eab-801b-b0326cd5c66a").note') #>> '{}', '[\[\]"]', '', 'g') AS ownership,
+	REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "1fceb11c-7a89-49d6-8ef0-2a42c58556a2").note') #>> '{}', '[\[\]"]', '', 'g') AS price,
+	REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "e1f34ba3-6d37-462e-878c-17f922b13d93").note') #>> '{}', '[\[\]"]', '', 'g') AS inventory_date,
+	REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "5ec4ca65-aacc-4f16-aa9d-395efd89f850").note') #>> '{}', '[\[\]"]', '', 'g') AS po_number,
+	REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "8f99bd3a-706c-45d2-89d8-8eca7fa1c03f").note') #>> '{}', '[\[\]"]', '', 'g') AS invoice,
     insc.jsonb ->> 'name' AS subtype,
 	itsc.jsonb ->> 'name' AS fund
 FROM 
@@ -100,8 +72,6 @@ FROM
 	LEFT JOIN folio_inventory.material_type__t mt ON mt.id = it.materialtypeid
 	LEFT JOIN folio_inventory.statistical_code insc ON insc.id = (jsonb_path_query_first(ins.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
 	LEFT JOIN folio_inventory.statistical_code itsc ON itsc.id = (jsonb_path_query_first(it.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
-	LEFT JOIN identifiers fi ON fi.id = ins.id
-	LEFT JOIN notes fn ON fn.id = it.id
 WHERE
 	(service_point = 'All' OR sp.name = service_point)
 	AND (holdings_location = 'All' OR hl.name = holdings_location)

@@ -24,8 +24,8 @@ FROM
     ON li.current_item_effective_location_id = ll.location_id
 WHERE
     isc.statistical_code_name  = 'Laptop' AND
-    li.material_type_name  = 'DAYUSE-ITEM'  AND
-    to_char(li.loan_date, 'yyyy-mm-dd') BETWEEN '2025-09-01' AND '2025-10-31'
+    li.material_type_name  = 'DAYUSE-ITEM' AND
+    to_char(li.loan_date, 'yyyy-mm-dd') BETWEEN start_date AND end_date
 GROUP BY
     li.current_item_effective_location_name
 ORDER BY

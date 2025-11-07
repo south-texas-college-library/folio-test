@@ -1,0 +1,19 @@
+{
+    "displayName": "LCOL - Laptop Checkouts",
+    "description": "Create a list of all DayUse-Item Laptop Checkouts from all service points within a date range.",
+    "instructions": "Input the date range to run the report.",
+    "parameters": [
+        {
+            "name": "start_date",
+            "displayName": "Start Date",
+            "type": "date",
+            "required": false
+        },
+        {
+            "name": "end_date",
+            "displayName": "End Date",
+            "type": "date",
+            "required": false
+        }
+    ]
+}

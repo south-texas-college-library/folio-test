@@ -3,8 +3,8 @@
 DROP FUNCTION IF EXISTS lcol_laptop_checkouts;
 
 CREATE FUNCTION lcol_laptop_checkouts(
-    start_date date DEFAULT (CURRENT_DATE - INTERVAL '7 day') --'2000-01-01',
-    end_date date DEFAULT (CURRENT_DATE - INTERVAL '1 day') --'2050-01-01'
+    start_date date DEFAULT '2000-01-01',
+    end_date date DEFAULT '2050-01-01'
 )
 RETURNS TABLE(
     campus_lab text,

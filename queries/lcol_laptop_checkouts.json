@@ -13,7 +13,7 @@
             "name": "end_date",
             "displayName": "End Date",
             "type": "date",
-            "required": true
+            "required": false
         }
     ]
 }

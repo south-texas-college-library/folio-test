@@ -7,16 +7,16 @@ CREATE FUNCTION lib_banner_holds(
     max_fee integer DEFAULT '400'
 )
 RETURNS TABLE(
-    barcode text,
+    a_number text,
     username text,
     patron_profile text,
     title text,
-    fee_date date,
-    balance integer
+    fee_date timestamptz,
+    balance numeric
 )
 AS $$
 SELECT
-    u.barcode,
+    u.barcode as a_number,
     u.username,
     faa.patron_group_name AS patron_profile,
     ihi.title AS title,

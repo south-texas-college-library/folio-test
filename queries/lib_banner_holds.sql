@@ -19,9 +19,9 @@ SELECT
     u.barcode,
     u.username,
     faa.patron_group_name AS patron_profile
-    ihi.title,
-    faa.transaction_date as fee_date,
-    faaa.account_balance as balance
+    ihi.title AS title,
+    faa.transaction_date AS fee_date,
+    faaa.account_balance AS balance
 FROM
     folio_derived.feesfines_accounts_actions AS faa
     LEFT JOIN folio_derived.loans_items AS li

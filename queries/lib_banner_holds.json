@@ -4,20 +4,6 @@
     "instructions": "Input the fee balance range to run the report.",
     "parameters": [
         {
-            "name": "patron_group_name",
-            "displayName": "Patron Profile",
-            "type": "text",
-            "required": true,
-            "default": "All",
-            "controlled.options": [
-                "All",
-                "Community",
-                "Employee",
-                "ILL",
-                "Student"
-            ]
-        },
-        {
             "name": "min_fee",
             "displayName": "Minimum Fee",
             "type": "integer",

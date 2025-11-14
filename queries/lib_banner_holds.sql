@@ -18,7 +18,7 @@ AS $$
 SELECT
     u.barcode,
     u.username,
-    faa.patron_group_name AS patron_profile
+    faa.patron_group_name AS patron_profile,
     ihi.title AS title,
     faa.transaction_date AS fee_date,
     faaa.account_balance AS balance

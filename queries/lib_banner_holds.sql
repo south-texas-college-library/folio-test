@@ -9,7 +9,7 @@ CREATE FUNCTION lib_banner_holds(
 RETURNS TABLE(
     a_number text,
     username text,
-    patron_profile text,
+    patron_group_name text,
     title text,
     fee_date timestamptz,
     balance numeric
@@ -18,7 +18,7 @@ AS $$
 SELECT
     u.barcode AS a_number,
     u.username,
-    li.patron_group_name AS patron_profile,
+    li.patron_group_name,
     ihi.title AS title,
     faa.transaction_date AS fee_date,
     faa.account_balance AS balance
@@ -32,7 +32,7 @@ FROM
     ON ihi.barcode = li.barcode
 WHERE
     (li.permanent_loan_type_name = 'High Value')
-    AND (patron_profile = 'ALL' OR li.patron_group_name = patron_profile)
+    AND (patron_group_name = 'ALL' OR li.patron_group_name)
     AND (faa.fine_status = 'Open')
 ORDER BY
     faa.account_balance ASC

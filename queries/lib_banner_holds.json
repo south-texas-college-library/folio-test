@@ -4,7 +4,7 @@
     "instructions": "Input the fee balance range to run the report.",
     "parameters": [
         {
-            "name": "patron_profile",
+            "name": "patron_group_name",
             "displayName": "Patron Profile",
             "type": "text",
             "required": true,

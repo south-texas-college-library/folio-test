@@ -26,8 +26,8 @@
         {
             "name": "max_fee",
             "displayName": "Maximum Fee",
-            "type": "date",
-            "required": false
+            "type": "integer",
+            "required": true
         }
     ]
 }

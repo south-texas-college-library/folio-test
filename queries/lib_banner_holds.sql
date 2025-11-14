@@ -32,6 +32,7 @@ FROM
     ON ihi.barcode = li.barcode
 WHERE
     (li.permanent_loan_type_name = 'High Value')
+    AND (faa.account_balance BETWEEN min_fee AND max_fee)
     AND (faa.fine_status = 'Open')
 ORDER BY
     faa.account_balance ASC

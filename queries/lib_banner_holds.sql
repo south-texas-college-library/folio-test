@@ -16,9 +16,9 @@ RETURNS TABLE(
 )
 AS $$
 SELECT
-    u.barcode as a_number,
+    u.barcode AS a_number,
     u.username,
-    faa.patron_group_name AS patron_profile,
+    li.patron_group_name AS patron_profile,
     ihi.title AS title,
     faa.transaction_date AS fee_date,
     faa.account_balance AS balance
@@ -31,9 +31,9 @@ FROM
     LEFT JOIN folio_derived.items_holdings_instances AS ihi
     ON ihi.barcode = li.barcode
 WHERE
-    li.permanent_loan_type_name = 'High Value' AND
-    (patron_profile = 'ALL' OR faa.patron_group_name = patron_profile) AND
-    faa.fine_status = 'Open'
+    (li.permanent_loan_type_name = 'High Value')
+    AND (patron_profile = 'ALL' OR li.patron_group_name = patron_profile)
+    AND (faa.fine_status = 'Open')
 ORDER BY
     faa.account_balance ASC
 $$

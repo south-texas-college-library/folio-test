@@ -27,21 +27,21 @@ RETURNS TABLE(
 )
 AS $$
 SELECT 
-    ins.jsonb ->> 'title' as "Title",
-    u.jsonb ->> 'barcode' as "User ID",
-    fl.jsonb -> 'status' ->> 'name' as "Loan Status",
-    NULLIF(CONCAT(u.jsonb -> 'personal' ->> 'firstName', ' ', u.jsonb -> 'personal' ->> 'lastName'), ' ') as "Name",
-    it.jsonb ->> 'copyNumber' as "Copy Number",
-    fl.jsonb ->> 'itemStatus' as "Item Status",
-    fl.jsonb ->> 'dueDate' as "Due Date",
-    fl.jsonb ->> 'loanDate' as "Loan Date",
-    it.jsonb ->> 'barcode' as "Barcode",
-    hl.name as "Home Location",
-    il.name as "Current Location",
-    lc.name as "Owning Library",
-    NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "1fceb11c-7a89-49d6-8ef0-2a42c58556a2").note') #>> '{}', '[\[\]"]', '', 'g'), '') AS price,
-	NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "5ec4ca65-aacc-4f16-aa9d-395efd89f850").note') #>> '{}', '[\[\]"]', '', 'g'), '') AS po_number,
-	NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "86e6410d-4c8b-4853-8054-bd5e563e9760").note') #>> '{}', '[\[\]"]', '', 'g'), '') AS staff_notes
+    ins.jsonb ->> 'title',
+    u.jsonb ->> 'barcode',
+    fl.jsonb -> 'status' ->> 'name',
+    NULLIF(CONCAT(u.jsonb -> 'personal' ->> 'firstName', ' ', u.jsonb -> 'personal' ->> 'lastName'), ' '),
+    it.jsonb ->> 'copyNumber',
+    fl.jsonb ->> 'itemStatus',
+    (fl.jsonb ->> 'dueDate'::timestamp),
+    (fl.jsonb ->> 'loanDate'::timestamp),
+    it.jsonb ->> 'barcode',
+    hl.name,
+    il.name,
+    lc.name,
+    NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "1fceb11c-7a89-49d6-8ef0-2a42c58556a2").note') #>> '{}', '[\[\]"]', '', 'g'), ''),
+	NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "5ec4ca65-aacc-4f16-aa9d-395efd89f850").note') #>> '{}', '[\[\]"]', '', 'g'), ''),
+	NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "86e6410d-4c8b-4853-8054-bd5e563e9760").note') #>> '{}', '[\[\]"]', '', 'g'), '')
 FROM 
     folio_inventory.instance ins
     LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id

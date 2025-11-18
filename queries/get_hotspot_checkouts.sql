@@ -55,7 +55,7 @@ FROM
 	LEFT JOIN folio_inventory.statistical_code__t insc ON insc.id = (jsonb_path_query_first(ins.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
 WHERE 
     insc.name = 'Hotspot'
-    AND (status = 'All' OR fl.jsonb ->> 'itemStatus' = status)
+    AND (status = 'All' OR fl.jsonb -> 'status' ->> 'name' = status)
     AND (fl.jsonb ->> 'loanDate')::timestamptz BETWEEN start_date AND end_date
     AND	(service_point = 'All' OR sp.name = service_point)
 $$

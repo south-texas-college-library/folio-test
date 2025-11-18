@@ -33,8 +33,8 @@ SELECT
     NULLIF(CONCAT(u.jsonb -> 'personal' ->> 'firstName', ' ', u.jsonb -> 'personal' ->> 'lastName'), ' '),
     it.jsonb ->> 'copyNumber',
     fl.jsonb ->> 'itemStatus',
-    (fl.jsonb ->> 'dueDate')::timestamptz,
     (fl.jsonb ->> 'loanDate')::timestamptz,
+    (fl.jsonb ->> 'dueDate')::timestamptz,
     it.jsonb ->> 'barcode',
     hl.name,
     il.name,
@@ -56,7 +56,7 @@ FROM
 WHERE 
     insc.name = 'Hotspot'
     AND (status = 'All' OR fl.jsonb ->> 'itemStatus' = status)
-    AND fl.jsonb ->> 'loanDate' BETWEEN start_date AND end_date
+    AND (fl.jsonb ->> 'loanDate')::timestamptz BETWEEN start_date AND end_date
     AND	(service_point = 'All' OR sp.name = service_point)
 $$
 LANGUAGE SQL

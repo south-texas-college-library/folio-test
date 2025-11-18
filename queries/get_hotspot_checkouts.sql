@@ -51,7 +51,7 @@ FROM
     LEFT JOIN folio_inventory.location__t hl ON hl.id = hr.permanent_location_id
 	LEFT JOIN folio_inventory.location__t il ON il.id = it.effectivelocationid
 	LEFT JOIN folio_inventory.loccampus__t lc ON lc.id = il.campus_id
-	LEFT JOIN folio_inventory.service_point__t sp ON sp.id = (fl.jsonb ->> 'checkoutServicePointId')::uuid
+	LEFT JOIN folio_inventory.service_point__t sp ON sp.id = hl.primary_service_point
 	LEFT JOIN folio_inventory.statistical_code__t insc ON insc.id = (jsonb_path_query_first(ins.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
 WHERE 
     insc.name = 'Hotspot'

@@ -8,20 +8,20 @@ CREATE FUNCTION lib_banner_holds(
 )
 RETURNS TABLE(
     a_number text,
-    username text,
-    patron_profile text,
-    title text,
+    b_username text,
+    c_patron_profile text,
+    d_title text,
     fee_date timestamptz,
-    balance numeric
+    g_balance numeric
 )
 AS $$
 SELECT
     u.barcode AS a_number,
-    u.username,
-    li.patron_group_name AS patron_profile,
-    ihi.title AS title,
+    u.username AS b_username,
+    li.patron_group_name AS c_patron_profile,
+    ihi.title AS d_title,
     faa.transaction_date AS fee_date,
-    faa.account_balance AS balance
+    faa.account_balance AS g_balance
 FROM
     folio_derived.feesfines_accounts_actions AS faa
     LEFT JOIN folio_derived.loans_items AS li
@@ -35,7 +35,7 @@ WHERE
     AND (faa.account_balance >= min_fee AND faa.account_balance <= max_fee)
     AND (faa.fine_status = 'Open')
 ORDER BY
-    faa.account_balance ASC
+    faa.transaction_date DESC
 $$
 LANGUAGE SQL
 STABLE

@@ -15,6 +15,7 @@ RETURNS TABLE(
     item_status text,
     loan_date timestamptz,
     loan_due_date timestamptz,
+    test_date date,
     loan_return_date timestamptz,
     renewal_count integer,
     material_type_name text
@@ -26,6 +27,7 @@ AS $$
         folio_derived.loans_items.barcode,
         folio_derived.loans_items.item_status,
         folio_derived.loans_items.loan_date,
+        folio_derived.loans_items.loan_due_date,
         folio_derived.loans_items.loan_due_date,
         folio_derived.loans_items.loan_return_date,
         folio_derived.loans_items.renewal_count,

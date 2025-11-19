@@ -11,7 +11,7 @@ RETURNS TABLE(
     b_username text,
     c_patron_profile text,
     d_title text,
-    fee_date timestamptz,
+    fee_date text,
     g_balance numeric
 )
 AS $$
@@ -20,7 +20,7 @@ SELECT
     u.username AS b_username,
     li.patron_group_name AS c_patron_profile,
     ihi.title AS d_title,
-    date(faa.transaction_date) AS fee_date,
+    to_char(faa.transaction_date) AS fee_date,
     faa.account_balance AS g_balance
 FROM
     folio_derived.feesfines_accounts_actions AS faa

@@ -47,7 +47,7 @@ SELECT
 	NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "1fceb11c-7a89-49d6-8ef0-2a42c58556a2").note') #>> '{}', '[\[\]"]', '', 'g'), '') AS price,
     mt.name AS material_type,
     ins.jsonb ->> 'catalogedDate' AS date_created,
-    date(ins.jsonb ->> 'catalogedDate') AS test_date,
+    (ins.jsonb ->> 'catalogedDate')::date AS test_date,
     GREATEST(ins.jsonb -> 'publicationPeriod' ->> 'start', ins.jsonb -> 'publicationPeriod' ->> 'end') AS publication_date,
 	NULLIF(REGEXP_REPLACE(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.identifiers[*].value') #>> '{}', ' :.*?\$\d+\.\d{2}', '', 'g'), '[\[\]"]', '', 'g'), '') AS identifiers,
     hl.name AS home_location,

@@ -25,7 +25,8 @@ FROM
 WHERE
     isc.statistical_code_name  = 'Laptop' AND
     li.material_type_name  = 'DAYUSE-ITEM' AND
-    date(li.loan_date) BETWEEN start_date AND end_date
+    date(li.loan_date) >= start_date AND
+    date(li.loan_date) <= end_date
 GROUP BY
     li.current_item_effective_location_name
 ORDER BY

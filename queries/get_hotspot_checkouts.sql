@@ -9,7 +9,7 @@ CREATE FUNCTION get_hotspot_checkouts(
     end_date date DEFAULT '2050-01-01'
 )
 RETURNS TABLE(
-    title text,
+    "1 - Title" text,
     user_barcode text,
     loan_status text,
     name text,

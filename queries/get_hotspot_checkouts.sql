@@ -10,20 +10,20 @@ CREATE FUNCTION get_hotspot_checkouts(
 )
 RETURNS TABLE(
     "1 - Title" text,
-    user_barcode text,
-    loan_status text,
-    name text,
-    copy_number text,
-    item_status text,
-    loan_date timestamptz,
-    due_date timestamptz,
-    item_barcode text,
-    home_location text,
-    current_location text,
-    campus_name text,
-    price text,
-    po_number text,
-    staff_notes text
+    "2 - Patron Barcode" text,
+    "3 - Loan Status" text,
+    "4 - Patron Name" text,
+    "5 - Copy Number" text,
+    "6 - Item Status" text,
+    "7 - Loan Date" timestamptz,
+    "8 - Due Date" timestamptz,
+    "9 - Item Barcode" text,
+    "10 - Home Location" text,
+    "11 - Current Location" text,
+    "12 - Campus Name" text,
+    "13 - Price" text,
+    "14 - PO Number" text,
+    "15 - Staff Notes" text
 )
 AS $$
 SELECT 

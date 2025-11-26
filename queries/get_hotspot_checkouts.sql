@@ -9,21 +9,21 @@ CREATE FUNCTION get_hotspot_checkouts(
     end_date date DEFAULT '2050-01-01'
 )
 RETURNS TABLE(
-    "1 - Title" text,
-    "2 - Patron Barcode" text,
-    "3 - Loan Status" text,
-    "4 - Patron Name" text,
-    "5 - Copy Number" text,
-    "6 - Item Status" text,
-    "7 - Loan Date" timestamptz,
-    "8 - Due Date" timestamptz,
-    "9 - Item Barcode" text,
-    "10 - Home Location" text,
-    "11 - Current Location" text,
-    "12 - Campus Name" text,
-    "13 - Price" text,
-    "14 - PO Number" text,
-    "15 - Staff Notes" text
+    "A - Title" text,
+    "B - Patron Barcode" text,
+    "C - Loan Status" text,
+    "D - Patron Name" text,
+    "E - Copy Number" text,
+    "F - Item Status" text,
+    "G - Loan Date" timestamptz,
+    "H - Due Date" timestamptz,
+    "I - Item Barcode" text,
+    "J - Home Location" text,
+    "K - Current Location" text,
+    "L - Campus Name" text,
+    "M - Price" text,
+    "N - PO Number" text,
+    "O - Staff Notes" text
 )
 AS $$
 SELECT 

@@ -11,7 +11,7 @@ RETURNS TABLE(
     b_username text,
     c_patron_profile text,
     d_title text,
-    fee_date timestamptz,
+    fee_date date,
     g_balance numeric
 )
 AS $$

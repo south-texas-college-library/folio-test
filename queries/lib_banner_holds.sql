@@ -34,7 +34,7 @@ WHERE
     (faa.account_balance >= min_fee AND faa.account_balance <= max_fee)
     AND (faa.fine_status = 'Open')
 ORDER BY
-    faa.transaction_date DESC, u.username ASC
+    faa.account_balance ASC, u.username ASC
 $$
 LANGUAGE SQL
 STABLE

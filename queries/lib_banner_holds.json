@@ -1,7 +1,7 @@
 {
-    "displayName": "Library - Banner Holds",
-    "description": "Create a list of all patrons with a fee balance",
-    "instructions": "Input the fee balance range to run the report.",
+    "displayName": "Library - Fee/Fines",
+    "description": "Create a list of all patrons with a fee/fine balance",
+    "instructions": "Input the fee/fine balance range to run the report.",
     "parameters": [
         {
             "name": "min_fee",

@@ -6,24 +6,24 @@ CREATE FUNCTION get_subject_search(
     subject text DEFAULT NULL
 ) 
 RETURNS TABLE(
-    title TEXT,
-    campus TEXT,
-    author TEXT,
-    call_number TEXT,
-    item_barcode TEXT,
-    price TEXT,
-    item_type TEXT,
-    date_created TEXT,
-    publication_date TEXT,
-    isbn TEXT,
-    home_location TEXT,
-    current_location TEXT,
-    subjects TEXT,
-    total_renewals INTEGER,
-    total_checkouts INTEGER,
-	publisher TEXT,
-    content TEXT,
-    subtype TEXT
+    "A - Title" TEXT,
+    "B - Campus" TEXT,
+    "C - Author" TEXT,
+    "D - call_number" TEXT,
+    "E - Item Barcode" TEXT,
+    "F - Item Price" TEXT,
+    "G - Item Type" TEXT,
+    "H - Date Created" TEXT,
+    "I - Publication Date" TEXT,
+    "J - ISBN" TEXT,
+    "K - Home Location" TEXT,
+    "L - Current Location" TEXT,
+    "M - Subjects" TEXT,
+    "N - Total Renewals" INTEGER,
+    "O - Total Checkouts" INTEGER,
+	"P - Publisher" TEXT,
+    "Q - Content" TEXT,
+    "R - Subtype" TEXT
 )
 AS $$
 WITH loans AS (

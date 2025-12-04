@@ -3,8 +3,8 @@
 DROP FUNCTION IF EXISTS lib_banner_holds;
 
 CREATE FUNCTION lib_banner_holds(
-    min_fee integer DEFAULT '20',
-    max_fee integer DEFAULT '400'
+    min_fee integer DEFAULT '400',
+    max_fee integer DEFAULT '1000000'
 )
 RETURNS TABLE(
     a_number text,
@@ -31,8 +31,7 @@ FROM
     LEFT JOIN folio_derived.items_holdings_instances AS ihi
     ON ihi.barcode = li.barcode
 WHERE
-    (li.permanent_loan_type_name = 'High Value')
-    AND (faa.account_balance >= min_fee AND faa.account_balance <= max_fee)
+    (faa.account_balance >= min_fee AND faa.account_balance <= max_fee)
     AND (faa.fine_status = 'Open')
 ORDER BY
     faa.transaction_date DESC

@@ -3,8 +3,8 @@
 DROP FUNCTION IF EXISTS test_query;
 
 CREATE FUNCTION test_query(
-    start text DEFAULT 'A',
-    end text DEFAULT 'Z'
+    start_cn text DEFAULT 'A',
+    end_cn text DEFAULT 'Z'
 )
 RETURNS TABLE(
     "A - Title" text,
@@ -68,7 +68,7 @@ AS $$
         join identifiers on identifiers.id = folio_inventory.instance.id
         join notes on notes.id = folio_inventory.item.id
         join codes on codes.id = folio_inventory.item.id
-    where left(folio_inventory.holdings_record__t.call_number, 1) between start and end
+    where left(folio_inventory.holdings_record__t.call_number, 1) between start_cn and end_cn
     order by call_number
 $$
 LANGUAGE SQL

@@ -4,7 +4,7 @@
     "instructions": "Input the call number range",
     "parameters": [
         {
-            "name": "end_cn",
+            "name": "start_cn",
             "displayName": "Start Call Number",
             "type": "text",
             "required": true

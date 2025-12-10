@@ -4,13 +4,13 @@
     "instructions": "Input the call number range",
     "parameters": [
         {
-            "name": "start",
+            "name": "end_cn",
             "displayName": "Start Call Number",
             "type": "text",
             "required": true
         },
         {
-            "name": "end",
+            "name": "end_cn",
             "displayName": "End Call Number",
             "type": "text",
             "required": false

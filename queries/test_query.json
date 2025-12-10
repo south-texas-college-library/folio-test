@@ -7,7 +7,7 @@
             "name": "start_cn",
             "displayName": "Start Call Number",
             "type": "text",
-            "required": true
+            "required": false
         },
         {
             "name": "end_cn",

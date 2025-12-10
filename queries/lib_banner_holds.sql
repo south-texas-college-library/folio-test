@@ -16,12 +16,12 @@ RETURNS TABLE(
 )
 AS $$
 SELECT
-    u.barcode AS a_number,
-    u.username AS b_username,
-    li.patron_group_name AS c_patron_profile,
-    ihi.title AS d_title,
-    date(faa.transaction_date) AS fee_date,
-    faa.account_balance AS g_balance
+    date(faa.transaction_date) AS a_fee_date,
+    u.barcode AS b_stc_id,
+    u.username AS c_username,
+    li.patron_group_name AS d_patron_profile,
+    ihi.title AS e_item_title,
+    faa.account_balance AS fee_balance
 FROM
     folio_derived.feesfines_accounts_actions AS faa
     LEFT JOIN folio_derived.loans_items AS li

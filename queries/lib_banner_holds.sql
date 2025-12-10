@@ -7,12 +7,12 @@ CREATE FUNCTION lib_banner_holds(
     max_fee integer DEFAULT '1000000'
 )
 RETURNS TABLE(
-    a_number text,
-    b_username text,
-    c_patron_profile text,
-    d_title text,
-    fee_date timestamptz,
-    g_balance numeric
+    a_fee_date timestamptz,
+    b_stc_id text,
+    c_username text,
+    d_patron_profile text,
+    e_item_title text,
+    fee_balance numeric
 )
 AS $$
 SELECT
@@ -34,7 +34,7 @@ WHERE
     (faa.account_balance >= min_fee AND faa.account_balance <= max_fee)
     AND (faa.fine_status = 'Open')
 ORDER BY
-    faa.account_balance ASC, u.username ASC
+    faa.transaction_date DESC, u.username ASC
 $$
 LANGUAGE SQL
 STABLE

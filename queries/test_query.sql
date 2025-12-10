@@ -50,7 +50,7 @@ AS $$
             folio_inventory.statistical_code__t.name as values
         from folio_inventory.item it
         left join lateral jsonb_array_elements_text(it.jsonb -> 'statisticalCodeIds') as object on true
-        join folio_inventory.statistical_code__t on folio_inventory.statistical_code__t.id = object::uuid
+        left join folio_inventory.statistical_code__t on folio_inventory.statistical_code__t.id = object::uuid
     )
     select
         folio_inventory.instance.jsonb ->> 'title' as "A - Title",

@@ -8,15 +8,15 @@ CREATE FUNCTION test_query(
 )
 RETURNS TABLE(
     "A - Title" text,
-    "Barcode" text,
+    "B - Barcode" text,
     "C - Call Number" text,
     "D - Cataloged Date" text,
     "E - Identifiers" text,
-    "F- Staff Notes" text,
+    "F - Staff Notes" text,
     "G - Statistical Codes" text
 )
 AS $$
-    with loans as (
+    with loans as materialized (
         select
             folio_circulation.loan__t.item_id as item_id,
             count(folio_circulation.loan__t.id) as checkouts
@@ -25,7 +25,7 @@ AS $$
         left join folio_inventory.item__t on folio_inventory.item__t.id = folio_circulation.loan__t.item_id
         group by folio_circulation.loan__t.item_id
     ),
-    identifiers as (
+    identifiers as materialized (
         select
             i.id as id,
             string_agg(distinct object ->> 'value', ', ') AS values
@@ -34,7 +34,7 @@ AS $$
         group by
             i.id
     ),
-    notes as (
+    notes as materialized (
         select
             it.id as id,
             string_agg(distinct object ->> 'note', ', ') filter (where folio_inventory.item_note_type__t.name = 'Staff Note') as values
@@ -44,7 +44,7 @@ AS $$
         group by
             it.id
     ),
-    codes as (
+    codes as materialized (
         select
             it.id as id,
             folio_inventory.statistical_code__t.name as values

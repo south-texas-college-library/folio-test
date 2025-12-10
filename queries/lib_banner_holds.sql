@@ -7,7 +7,7 @@ CREATE FUNCTION lib_banner_holds(
     max_fee integer DEFAULT '1000000'
 )
 RETURNS TABLE(
-    a_fee_date timestamptz,
+    a_fee_date text,
     b_stc_id text,
     c_username text,
     d_patron_profile text,
@@ -16,7 +16,7 @@ RETURNS TABLE(
 )
 AS $$
 SELECT
-    date(faa.transaction_date) AS a_fee_date,
+    faa.transaction_date::date::text AS a_fee_date,
     u.barcode AS b_stc_id,
     u.username AS c_username,
     li.patron_group_name AS d_patron_profile,

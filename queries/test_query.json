@@ -5,13 +5,13 @@
     "parameters": [
         {
             "name": "start_cn",
-            "displayName": "Start CN",
+            "displayName": "Start Call Number",
             "type": "text",
             "required": false
         },
         {
             "name": "end_cn",
-            "displayName": "End CN",
+            "displayName": "End Call Number",
             "type": "text",
             "required": false
         }

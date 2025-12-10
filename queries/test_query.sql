@@ -16,7 +16,7 @@ RETURNS TABLE(
     "G - Statistical Codes" text
 )
 AS $$
-    with loans as materialized (
+    with loans as (
         select
             folio_circulation.loan__t.item_id as item_id,
             count(folio_circulation.loan__t.id) as checkouts
@@ -25,7 +25,7 @@ AS $$
         join folio_inventory.item__t on folio_inventory.item__t.id = folio_circulation.loan__t.item_id
         group by folio_circulation.loan__t.item_id
     ),
-    identifiers as materialized (
+    identifiers as (
         select
             i.id as id,
             string_agg(object ->> 'value', ', ') AS values
@@ -34,7 +34,7 @@ AS $$
         group by
             i.id
     ),
-    notes as materialized (
+    notes as (
         select
             it.id as id,
             string_agg(object ->> 'note', ', ') filter (where folio_inventory.item_note_type__t.name = 'Staff Note') as values
@@ -44,7 +44,7 @@ AS $$
         group by
             it.id
     ),
-    codes as materialized (
+    codes as (
         select
             it.id as id,
             folio_inventory.statistical_code__t.name as values
@@ -68,7 +68,7 @@ AS $$
         join identifiers on identifiers.id = folio_inventory.instance.id
         join notes on notes.id = folio_inventory.item.id
         join codes on codes.id = folio_inventory.item.id
-    where folio_inventory.holdings_record__t.call_number between start_cn and end_cn
+    where left(folio_inventory.holdings_record__t.call_number, 1) between start_cn and end_cn
     order by call_number
 $$
 LANGUAGE SQL

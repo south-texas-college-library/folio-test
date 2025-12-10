@@ -16,7 +16,7 @@ RETURNS TABLE(
     "G - Statistical Codes" text
 )
 AS $$
-    with loans as (
+    with loans as materialized (
         select
             folio_inventory.item.id as id,
             count(folio_circulation.loan__t.id) as checkouts
@@ -26,7 +26,7 @@ AS $$
         group by 
             folio_inventory.item.id
     ),
-    identifiers as (
+    identifiers as materialized (
         select
             folio_inventory.instance.id as id,
             string_agg(object ->> 'value', ', ') AS values
@@ -35,7 +35,7 @@ AS $$
         group by
             folio_inventory.instance.id
     ),
-    notes as (
+    notes as materialized (
         select
             folio_inventory.item.id as id,
             string_agg(object ->> 'note', ', ') filter (where folio_inventory.item_note_type__t.name = 'Staff Note') as values
@@ -45,7 +45,7 @@ AS $$
         group by
             folio_inventory.item.id
     ),
-    codes as (
+    codes as materialized (
         -- I've found another way to retrieve the statistical codes from the instance and/or item table(s).
         -- It's written to be very similar where it uses LEFT JOIN LATERAL ON TRUE to create a result row for each code
         -- Where it's returned as a text. You can use either way. I wanted to include it so it can look similar to the other CTEs.

@@ -21,8 +21,8 @@ AS $$
             folio_inventory.item.id as id,
             count(folio_circulation.loan__t.id) as checkouts
         from
-            folio_circulation.loan__t
-        join folio_inventory.item on folio_inventory.item.id = folio_circulation.loan__t.item_id
+            folio_inventory.item
+        left join folio_circulation.loan__t on folio_circulation.loan__t.item_id = folio_inventory.item.id
         group by 
             folio_inventory.item.id
     ),
@@ -46,6 +46,9 @@ AS $$
             folio_inventory.item.id
     ),
     codes as (
+        -- I've found another way to retrieve the statistical codes from the instance and/or item table(s).
+        -- It's written to be very similar where it uses LEFT JOIN LATERAL ON TRUE to create a result row for each code
+        -- Where it's returned as a text. You can use either way. I wanted to include it so it can look similar to the other CTEs.
         select
             folio_inventory.item.id as id,
             folio_inventory.statistical_code__t.name as values
@@ -62,13 +65,13 @@ AS $$
         notes.values as "F - Staff Notes",
         codes.values as "G - Statistical Codes"
     from folio_inventory.instance
-        left join folio_inventory.holdings_record__t on folio_inventory.holdings_record__t.instance_id = folio_inventory.instance.id
-        left join folio_inventory.item on folio_inventory.item.holdingsrecordid = folio_inventory.holdings_record__t.id
+        join folio_inventory.holdings_record__t on folio_inventory.holdings_record__t.instance_id = folio_inventory.instance.id
+        join folio_inventory.item on folio_inventory.item.holdingsrecordid = folio_inventory.holdings_record__t.id
         join folio_inventory.item__t on folio_inventory.item__t.id = folio_inventory.item.id
         left join loans on loans.id = folio_inventory.item.id
-        join identifiers on identifiers.id = folio_inventory.instance.id
-        join notes on notes.id = folio_inventory.item.id
-        join codes on codes.id = folio_inventory.item.id
+        left join identifiers on identifiers.id = folio_inventory.instance.id
+        left join notes on notes.id = folio_inventory.item.id
+        left join codes on codes.id = folio_inventory.item.id
     where left(folio_inventory.holdings_record__t.call_number, 1) between start_cn and end_cn
     order by call_number
 $$

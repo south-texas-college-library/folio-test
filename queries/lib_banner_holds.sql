@@ -18,14 +18,14 @@ RETURNS TABLE(
 )
 AS $$
 SELECT
-    faa.transaction_date::date::text AS fee_date,
-    jsonb_extract_path_text(u.jsonb, 'barcode') AS stc_id ,
-    faa.patron_group_name AS patron_profile,
-    jsonb_extract_path_text(u.jsonb, 'username') as username ,
-    jsonb_extract_path_text(u.jsonb, 'personal', 'lastName') AS last_name ,
-    jsonb_extract_path_text(u.jsonb, 'personal', 'firstName') AS first_name ,    
-    ihi.title AS item_title,
-    faa.account_balance AS fee_balance
+    faa.transaction_date::date::text AS a_fee_date,
+    jsonb_extract_path_text(u.jsonb, 'barcode') AS b_stc_id ,
+    faa.patron_group_name AS c_patron_profile,
+    jsonb_extract_path_text(u.jsonb, 'username') as d_username ,
+    jsonb_extract_path_text(u.jsonb, 'personal', 'lastName') AS e_last_name ,
+    jsonb_extract_path_text(u.jsonb, 'personal', 'firstName') AS f_first_name ,    
+    ihi.title AS g_item_title,
+    faa.account_balance AS h_fee_balance
 FROM
     folio_derived.feesfines_accounts_actions AS faa
     LEFT JOIN folio_users.users__ AS u

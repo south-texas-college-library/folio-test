@@ -30,7 +30,7 @@ FROM
     folio_derived.feesfines_accounts_actions AS faa
     LEFT JOIN folio_users.users__ AS u
     ON u.id = faa.user_id
-    LEFT JOIN = folio_derived.loans_items AS li
+    LEFT JOIN folio_derived.loans_items AS li
     ON faa.user_id = li.user_id
     LEFT JOIN folio_derived.items_holdings_instances AS ihi
     ON ihi.barcode = li.barcode

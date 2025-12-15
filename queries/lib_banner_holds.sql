@@ -38,7 +38,7 @@ WHERE
     (faa.account_balance >= min_fee AND faa.account_balance <= max_fee)
     AND (faa.fine_status = 'Open')
 ORDER BY
-    fee_date DESC, username ASC, fee_balance DESC
+    a_fee_date DESC, d_username ASC, h_fee_balance DESC
 $$
 LANGUAGE SQL
 STABLE

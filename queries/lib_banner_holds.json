@@ -1,6 +1,6 @@
 {
     "displayName": "Library - Fees/Fines",
     "description": "Create a list of all patrons with a fee/fine balance.",
-    "instructions": "Input the fee/fine balance range to run the report.",
+    "instructions": "Input the fee/fine balance range to run the report."
 
 }

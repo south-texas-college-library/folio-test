@@ -1,19 +1,6 @@
 {
-    "displayName": "Library - Fee/Fines",
-    "description": "Create a list of all patrons with a fee/fine balance",
+    "displayName": "Library - Fees/Fines",
+    "description": "Create a list of all patrons with a fee/fine balance.",
     "instructions": "Input the fee/fine balance range to run the report.",
-    "parameters": [
-        {
-            "name": "min_fee",
-            "displayName": "Minimum Fee/Fine (Default 400)",
-            "type": "integer",
-            "required": false
-        },
-        {
-            "name": "max_fee",
-            "displayName": "Maximum Fee/Fine (Default 10000)",
-            "type": "integer",
-            "required": false
-        }
-    ]
+
 }

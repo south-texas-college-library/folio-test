@@ -2,8 +2,7 @@
     "displayName": "Library - Fees/Fines",
     "description": "Create a list of all patrons with a fee/fine balance.",
     "instructions": "Input the fee/fine balance range to run the report.",
-
-        "parameters": [
+    "parameters": [
         {
             "name": "min_fee",
             "displayName": "Minimum Fee/Fine (Default 400)",

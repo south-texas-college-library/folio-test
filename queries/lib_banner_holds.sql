@@ -18,25 +18,22 @@ RETURNS TABLE(
 )
 AS $$
 SELECT
-    faa.transaction_date::date::text AS a_fee_date,
+    jsonb_extract_path_text(a.jsonb, 'metadata' , 'updatedDate')::date::text AS a_fee_date,
     jsonb_extract_path_text(u.jsonb, 'barcode') AS b_stc_id ,
-    faa.patron_group_name AS c_patron_profile,
+    jsonb_extract_path_text(g.jsonb, 'group') AS c_patron_profile,
     jsonb_extract_path_text(u.jsonb, 'username') as d_username ,
     jsonb_extract_path_text(u.jsonb, 'personal', 'lastName') AS e_last_name ,
     jsonb_extract_path_text(u.jsonb, 'personal', 'firstName') AS f_first_name ,    
-    ihi.title AS g_item_title,
-    faa.account_balance AS h_fee_balance
+    jsonb_extract_path_text(a.jsonb, 'title') AS g_item_title,
+    jsonb_extract_path_text(a.jsonb, 'remaining') AS h_fee_balance
 FROM
-    folio_derived.feesfines_accounts_actions AS faa
+    folio_feesfines.accounts AS a
     LEFT JOIN folio_users.users__ AS u
-    ON u.id = faa.user_id
-    LEFT JOIN folio_derived.loans_items AS li
-    ON faa.user_id = li.user_id
-    LEFT JOIN folio_derived.items_holdings_instances AS ihi
-    ON ihi.barcode = li.barcode
+    ON u.id = jsonb_extract_path_text(a.jsonb, 'userId')::uuid
+    LEFT JOIN folio_users.groups AS g
+    ON g.id = jsonb_extract_path_text(u.jsonb, 'patronGroup')::uuid
 WHERE
-    (faa.account_balance >= min_fee AND faa.account_balance <= max_fee)
-    AND (faa.fine_status = 'Open')
+    (jsonb_extract_path_text(a.jsonb, 'remaining')::numeric(7,2) >= min_fee AND jsonb_extract_path_text(a.jsonb, 'remaining')::numeric(7,2) <= max_fee)
 ORDER BY
     a_fee_date DESC, d_username ASC, h_fee_balance DESC
 $$

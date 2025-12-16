@@ -28,7 +28,7 @@ SELECT
     jsonb_extract_path_text(a.jsonb, 'remaining') AS h_fee_balance
 FROM
     folio_feesfines.accounts AS a
-    LEFT JOIN folio_users.users__ AS u
+    LEFT JOIN folio_users.users AS u
     ON u.id = jsonb_extract_path_text(a.jsonb, 'userId')::uuid
     LEFT JOIN folio_users.groups AS g
     ON g.id = jsonb_extract_path_text(u.jsonb, 'patronGroup')::uuid

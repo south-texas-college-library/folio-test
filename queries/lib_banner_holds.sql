@@ -14,7 +14,7 @@ RETURNS TABLE(
     e_last_name text,
     f_first_name text,
     g_item_title text,
-    h_fee_balance numeric::text
+    h_fee_balance text
 )
 AS $$
 SELECT

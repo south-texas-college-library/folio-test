@@ -6,13 +6,13 @@
         {
             "name": "min_fee",
             "displayName": "Minimum Fee/Fine (Default 400)",
-            "type": "integer",
+            "type": "numeric",
             "required": false
         },
         {
             "name": "max_fee",
             "displayName": "Maximum Fee/Fine (Default 10000)",
-            "type": "integer",
+            "type": "numeric",
             "required": false
         }
     ]

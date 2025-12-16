@@ -33,7 +33,7 @@ FROM
     LEFT JOIN folio_users.groups AS g
     ON g.id = jsonb_extract_path_text(u.jsonb, 'patronGroup')::uuid
 WHERE
-    (h_fee_balance::numeric(7,2) >= min_fee AND h_fee_balance::numeric(7,2) <= max_fee)
+    (jsonb_extract_path_text(a.jsonb, 'remaining')::numeric(7,2) >= min_fee AND jsonb_extract_path_text(a.jsonb, 'remaining')::numeric(7,2) <= max_fee)
 ORDER BY
     a_fee_date DESC, d_username ASC, h_fee_balance DESC
 $$

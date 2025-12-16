@@ -3,8 +3,8 @@
 DROP FUNCTION IF EXISTS lib_banner_holds;
 
 CREATE FUNCTION lib_banner_holds(
-    min_fee integer DEFAULT '400',
-    max_fee integer DEFAULT '1000000'
+    min_fee numeric(7,2) DEFAULT '400.00',
+    max_fee numeric(7,2) DEFAULT '1000000.00'
 )
 RETURNS TABLE(
     a_fee_date text,

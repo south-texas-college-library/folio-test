@@ -3,8 +3,8 @@
 DROP FUNCTION IF EXISTS lib_banner_holds;
 
 CREATE FUNCTION lib_banner_holds(
-    min_fee numeric(7,2) DEFAULT '400.00',
-    max_fee numeric(7,2) DEFAULT '1000000.00'
+    min_fee numeric DEFAULT '400.00',
+    max_fee numeric DEFAULT '1000000.00'
 )
 RETURNS TABLE(
     a_fee_date text,
@@ -33,7 +33,7 @@ FROM
     LEFT JOIN folio_users.groups AS g
     ON g.id = jsonb_extract_path_text(u.jsonb, 'patronGroup')::uuid
 WHERE
-    (jsonb_extract_path_text(a.jsonb, 'remaining')::numeric(7,2) >= min_fee AND jsonb_extract_path_text(a.jsonb, 'remaining')::numeric(7,2) <= max_fee)
+    (jsonb_extract_path_text(a.jsonb, 'remaining')::numeric >= min_fee AND jsonb_extract_path_text(a.jsonb, 'remaining')::numeric <= max_fee)
 ORDER BY
     a_fee_date DESC, d_username ASC, h_fee_balance DESC
 $$

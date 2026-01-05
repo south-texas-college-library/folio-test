@@ -1,8 +1,8 @@
 --metadb:function array_test
 
-DROP FUNCTION IF EXISTS test;
+DROP FUNCTION IF EXISTS array_test;
 
-CREATE FUNCTION test(
+CREATE FUNCTION array_test(
   item_barcode text[]
 )
 RETURNS TABLE(

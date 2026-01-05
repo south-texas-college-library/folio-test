@@ -5,8 +5,8 @@
     "parameters": [
         {
             "name": "item_barcode",
-            "displayName": "Item barcodes",
-            "type": "text[]",
+            "displayName": "Item Barcodes",
+            "type": "text",
             "required": false
         }
     ]

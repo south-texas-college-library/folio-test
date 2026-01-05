@@ -1,0 +1,13 @@
+{
+    "displayName": "Test",
+    "description": "Test",
+    "instructions": "Test",
+    "parameters": [
+        {
+            "name": "item_barcode",
+            "displayName": "Item barcode list",
+            "type": "text[]",
+            "required": false
+        }
+    ]
+}

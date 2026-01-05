@@ -14,7 +14,7 @@ from
 folio_inventory.instance__t it
 left join folio_inventory.holdings_record__t hrt on (it.id = hrt.instance_id)
 left join folio_inventory.item__t im on (im.holdings_record_id = hrt.id) 
-where im.barcode = (any(string_to_array(replace(item_barcode, ' ', ''), ',')))
+where im.barcode = any(string_to_array(replace(item_barcode, ' ', ''), ','))
 $$
 LANGUAGE SQL
 STABLE

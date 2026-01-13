@@ -39,7 +39,7 @@ FROM
 WHERE
     (jsonb_extract_path_text(a.jsonb, 'remaining')::numeric >= min_fee AND jsonb_extract_path_text(a.jsonb, 'remaining')::numeric <= max_fee)
 ORDER BY
-    a_fee_date DESC, d_username ASC, h_fee_balance DESC
+    a_fee_date DESC, d_username ASC, i_fee_balance DESC
 $$
 LANGUAGE SQL
 STABLE

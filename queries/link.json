@@ -1,0 +1,13 @@
+{
+    "displayName": "Link",
+    "description": "Link",
+    "instructions": "Link",
+    "parameters": [
+        {
+            "name": "item_barcode",
+            "displayName": "Item Barcode",
+            "type": "text",
+            "required": true
+        }
+    ]
+}

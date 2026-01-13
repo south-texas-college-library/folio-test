@@ -19,14 +19,14 @@ RETURNS TABLE(
 )
 AS $$
 SELECT
-    jsonb_extract_path_text(a.jsonb, 'metadata' , 'updatedDate')::date::text AS a_fee_date,
+    jsonb_extract_path_text(a.jsonb, 'metadata' , 'updatedDate')::date::text AS a_fee_date ,
     jsonb_extract_path_text(u.jsonb, 'barcode') AS b_stc_id ,
-    jsonb_extract_path_text(g.jsonb, 'group') AS c_patron_profile,
+    jsonb_extract_path_text(g.jsonb, 'group') AS c_patron_profile ,
     jsonb_extract_path_text(u.jsonb, 'username') as d_username ,
     jsonb_extract_path_text(u.jsonb, 'personal', 'lastName') AS e_last_name ,
     jsonb_extract_path_text(u.jsonb, 'personal', 'firstName') AS f_first_name ,
-    concat('<a href="https://stc-test.folio.indexdata.com/inventory?filters=staffSuppress.false&qindex=items.barcode&query=', jsonb_extract_path_text(i.jsonb, 'barcode'), '&segment=items&sort=title" target="_blank" rel="noopener">',jsonb_extract_path_text(i.jsonb, 'barcode'), '</a>') as g_barcode,
-    jsonb_extract_path_text(a.jsonb, 'title') AS h_item_title,
+    concat('https://stc-test.folio.indexdata.com/inventory?filters=staffSuppress.false&qindex=items.barcode&query=', jsonb_extract_path_text(i.jsonb, 'barcode'), '&segment=items&sort=title') as g_barcode ,
+    jsonb_extract_path_text(a.jsonb, 'title') AS h_item_title ,
     jsonb_extract_path_text(a.jsonb, 'remaining') AS i_fee_balance
 FROM
     folio_feesfines.accounts AS a

@@ -25,7 +25,7 @@ SELECT
     jsonb_extract_path_text(u.jsonb, 'username') as d_username ,
     jsonb_extract_path_text(u.jsonb, 'personal', 'lastName') AS e_last_name ,
     jsonb_extract_path_text(u.jsonb, 'personal', 'firstName') AS f_first_name ,
-    concat('https://stc-test.folio.indexdata.com/inventory?filters=staffSuppress.false&qindex=items.barcode&query=', jsonb_extract_path_text(i.jsonb, 'barcode'), '&segment=items&sort=title') as g_barcode ,
+    concat('<a href="https://stc-test.folio.indexdata.com/inventory?filters=staffSuppress.false&qindex=items.barcode&query=', jsonb_extract_path_text(i.jsonb, 'barcode'), '&segment=items&sort=title" target="_blank" rel="noopener">',jsonb_extract_path_text(i.jsonb, 'barcode'), '</a>') as barcode ,
     jsonb_extract_path_text(a.jsonb, 'title') AS h_item_title ,
     jsonb_extract_path_text(a.jsonb, 'remaining') AS i_fee_balance
 FROM

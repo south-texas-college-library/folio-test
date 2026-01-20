@@ -14,7 +14,7 @@ RETURNS TABLE(
     e_last_name text,
     f_first_name text,
     g_barcode text,
-    h_barcode_url text
+    h_barcode_url text,
     i_item_title text,
     j_fee_balance text
 )

@@ -13,8 +13,8 @@ RETURNS TABLE(
     d_username text,
     e_last_name text,
     f_first_name text,
-    g_barcode text,
-    h_barcode_url text,
+    g_barcode text,/*
+    h_barcode_url text,*/
     i_item_title text,
     j_fee_balance text
 )
@@ -26,8 +26,8 @@ SELECT
     jsonb_extract_path_text(u.jsonb, 'username') as d_username ,
     jsonb_extract_path_text(u.jsonb, 'personal', 'lastName') AS e_last_name ,
     jsonb_extract_path_text(u.jsonb, 'personal', 'firstName') AS f_first_name ,
-    jsonb_extract_path_text(i.jsonb, 'barcode') AS g_barcode ,
-    ('https://stc-test.folio.indexdata.com/inventory/view/66fda4da-b953-59ba-b803-4b5e83cb8dc3/b2d06474-9d35-5f8b-a48e-bb834815b851/98428318-8e65-5b33-8542-e54b7199fb50?filters=staffSuppress.false&qindex=items.barcode&query='||jsonb_extract_path_text(i.jsonb, 'barcode')||'&segment=items&sort=title') as h_barcode_url,
+    jsonb_extract_path_text(i.jsonb, 'barcode') AS g_barcode ,/*
+    ('https://stc-test.folio.indexdata.com/inventory/view/66fda4da-b953-59ba-b803-4b5e83cb8dc3/b2d06474-9d35-5f8b-a48e-bb834815b851/98428318-8e65-5b33-8542-e54b7199fb50?filters=staffSuppress.false&qindex=items.barcode&query='||jsonb_extract_path_text(i.jsonb, 'barcode')||'&segment=items&sort=title') as h_barcode_url,*/
     jsonb_extract_path_text(a.jsonb, 'title') AS i_item_title ,
     jsonb_extract_path_text(a.jsonb, 'remaining') AS j_fee_balance
 FROM

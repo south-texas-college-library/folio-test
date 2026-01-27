@@ -3,7 +3,8 @@
 DROP FUNCTION IF EXISTS link;
 
 CREATE FUNCTION link(
-  item_barcode text
+  item_barcode text default null,
+  item_status text default null
 )
 RETURNS TABLE(
   link text

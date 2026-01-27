@@ -1,13 +1,27 @@
 {
-    "displayName": "Link Test",
-    "description": "Link",
-    "instructions": "Link",
-    "parameters": [
-        {
-            "name": "item_barcode",
-            "displayName": "Item Barcode",
-            "type": "text",
-            "required": true
-        }
-    ]
+  "displayName": "Link Test",
+  "description": "Link",
+  "instructions": "Link",
+  "parameters": [
+    {
+      "name": "item_barcode",
+      "displayName": "Item Barcode",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "item_status",
+      "displayName": "Item Status",
+      "type": "text",
+      "required": false,
+      "controlled.options": [
+        "All",
+        "Aged to lost",
+        "Available",
+        "Checked out",
+        "In transit",
+        "Missing"
+      ]
+    }
+  ]
 }

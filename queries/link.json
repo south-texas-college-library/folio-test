@@ -14,6 +14,7 @@
       "displayName": "Item Status",
       "type": "text",
       "required": false,
+      "default": "Available",
       "controlled.options": [
         "All",
         "Aged to lost",

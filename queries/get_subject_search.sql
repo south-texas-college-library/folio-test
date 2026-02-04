@@ -38,15 +38,15 @@ WITH loans AS (
 		l.renewal_count
 )
 SELECT
-    ins.jsonb ->> 'title' AS title,
+    jsonb_extract_path_text(ins.jsonb, 'title') AS title,
     lc.name AS campus,
     jsonb_path_query_first(ins.jsonb, '$.contributors[*].name') #>> '{}' AS author,	
     hr.call_number AS call_number,
-    it.jsonb ->> 'barcode' AS barcode,
+    jsonb_extract_path_text(it.jsonb , 'barcode') AS barcode,
 	NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "1fceb11c-7a89-49d6-8ef0-2a42c58556a2").note') #>> '{}', '[\[\]"]', '', 'g'), '') AS price,
     mt.name AS material_type,
-    ins.jsonb ->> 'catalogedDate' AS date_created,
-    GREATEST(ins.jsonb -> 'publicationPeriod' ->> 'start', ins.jsonb -> 'publicationPeriod' ->> 'end') AS publication_date,
+    jsonb_extract_path_text(ins.jsonb , 'catalogedDate') AS date_created,
+    GREATEST(jsonb_extract_path_text(ins.jsonb, 'publicationPeriod', 'start'), jsonb_extract_path_text(ins.jsonb, 'publicationPeriod', 'end')) AS publication_date,
 	NULLIF(REGEXP_REPLACE(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.identifiers[*].value') #>> '{}', ' :.*?\$\d+\.\d{2}', '', 'g'), '[\[\]"]', '', 'g'), '') AS identifiers,
     hl.name AS home_location,
     il.name AS current_location,
@@ -54,19 +54,17 @@ SELECT
     COALESCE(loans.checkouts, 0) AS checkouts,
     COALESCE(loans.renewals, 0) AS renewals,
 	jsonb_path_query_first(ins.jsonb, '$.publication[*].publisher') #>> '{}' AS publisher,
-    insc.jsonb ->> 'name' AS subtype,
-	itsc.jsonb ->> 'name' AS fund
+    jsonb_extract_path_text(insc.jsonb, 'name') AS subtype,
+	jsonb_extract_path_text(itsc.jsonb, 'name') AS fund
 FROM
 	folio_inventory.instance ins
-	LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
-	LEFT JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
-	LEFT JOIN folio_inventory.loan_type__t plt ON plt.id = it.permanentloantypeid
-	LEFT JOIN folio_inventory.loan_type__t tlt ON tlt.id = it.temporaryloantypeid
-	LEFT JOIN folio_inventory.location__t hl ON hl.id = hr.permanent_location_id
-	LEFT JOIN folio_inventory.location__t il ON il.id = it.effectivelocationid
-	LEFT JOIN folio_inventory.material_type__t mt ON mt.id = it.materialtypeid
-	LEFT JOIN folio_inventory.service_point__t sp ON sp.id = hl.primary_service_point
-	LEFT JOIN folio_inventory.loccampus__t lc ON lc.id = hl.campus_id
+	JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
+	JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
+	JOIN folio_inventory.location__t hl ON hl.id = hr.permanent_location_id
+	JOIN folio_inventory.location__t il ON il.id = it.effectivelocationid
+	JOIN folio_inventory.material_type__t mt ON mt.id = it.materialtypeid
+	JOIN folio_inventory.service_point__t sp ON sp.id = hl.primary_service_point
+	JOIN folio_inventory.loccampus__t lc ON lc.id = hl.campus_id
 	LEFT JOIN folio_inventory.statistical_code insc ON insc.id = (jsonb_path_query_first(ins.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
 	LEFT JOIN folio_inventory.statistical_code itsc ON itsc.id = (jsonb_path_query_first(it.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
 	LEFT JOIN loans ON loans.item_id = it.id

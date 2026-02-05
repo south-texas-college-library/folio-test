@@ -38,16 +38,16 @@ RETURNS TABLE(
 )
 AS $$
 SELECT
-	ins.jsonb ->> 'title' AS title,
+	jsonb_extract_path_text(ins.jsonb, 'title') AS title,
 	hr.call_number AS call_number,
 	NULLIF(REGEXP_REPLACE(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.identifiers[*].value') #>> '{}', ' :.*?\$\d+\.\d{2}', '', 'g'), '[\[\]"]', '', 'g'), '') AS identifiers,
-    GREATEST(ins.jsonb -> 'publicationPeriod' ->> 'start', ins.jsonb -> 'publicationPeriod' ->> 'end') AS publication_date,
-    it.jsonb ->> 'barcode' AS item_barcode,
+    GREATEST(jsonb_extract_path_text(ins.jsonb, 'publicationPeriod', 'start'), jsonb_extract_path_text(ins.jsonb, 'publicationPeriod', 'end')) AS publication_date,
+    jsonb_extract_path_text(it.jsonb, 'barcode') AS item_barcode,
     hl.name AS holdings_location,
     il.name AS item_location,
     mt.name AS material_type,
     sp.name AS service_point,
-    it.jsonb -> 'status' ->> 'name' AS item_status,
+    jsonb_extract_path_text(it.jsonb, 'status', 'name') AS item_status,
     plt.name AS permanent_loan_type,
     tlt.name AS temporary_loan_type,
 	NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "5366d4d4-8775-4cf4-a00f-77c82f0ca3bf").note') #>> '{}', '[\[\]"]', '', 'g'), '') AS circulation_note,
@@ -58,18 +58,18 @@ SELECT
 	NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "e1f34ba3-6d37-462e-878c-17f922b13d93").note') #>> '{}', '[\[\]"]', '', 'g'), '') AS inventory_date,
 	NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "5ec4ca65-aacc-4f16-aa9d-395efd89f850").note') #>> '{}', '[\[\]"]', '', 'g'), '') AS po_number,
 	NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "8f99bd3a-706c-45d2-89d8-8eca7fa1c03f").note') #>> '{}', '[\[\]"]', '', 'g'), '') AS invoice,
-    insc.jsonb ->> 'name' AS subtype,
-	itsc.jsonb ->> 'name' AS fund
+    jsonb_extract_path_text(insc.jsonb, 'name') AS subtype,
+	jsonb_extract_path_text(itsc.jsonb, 'name') AS fund
 FROM 
 	folio_inventory.instance ins
-	LEFT JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
-	LEFT JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
-	LEFT JOIN folio_inventory.location__t hl ON hl.id = hr.permanent_location_id
-	LEFT JOIN folio_inventory.service_point__t sp ON sp.id = hl.primary_service_point
-	LEFT JOIN folio_inventory.loan_type__t plt ON plt.id = it.permanentloantypeid
+	JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
+	JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
+	JOIN folio_inventory.location__t hl ON hl.id = hr.permanent_location_id
+	JOIN folio_inventory.service_point__t sp ON sp.id = hl.primary_service_point
+	JOIN folio_inventory.loan_type__t plt ON plt.id = it.permanentloantypeid
 	LEFT JOIN folio_inventory.loan_type__t tlt ON tlt.id = it.temporaryloantypeid
-	LEFT JOIN folio_inventory.location__t il ON il.id = it.effectivelocationid
-	LEFT JOIN folio_inventory.material_type__t mt ON mt.id = it.materialtypeid
+	JOIN folio_inventory.location__t il ON il.id = it.effectivelocationid
+	JOIN folio_inventory.material_type__t mt ON mt.id = it.materialtypeid
 	LEFT JOIN folio_inventory.statistical_code insc ON insc.id = (jsonb_path_query_first(ins.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
 	LEFT JOIN folio_inventory.statistical_code itsc ON itsc.id = (jsonb_path_query_first(it.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
 WHERE

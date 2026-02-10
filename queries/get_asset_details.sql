@@ -50,21 +50,17 @@ AS $$
     JOIN folio_inventory.statistical_code__t insc ON insc.id = (jsonb_path_query_first(ins.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
     JOIN folio_inventory.material_type__t m on m.id = jsonb_extract_path_text(it.jsonb, 'materialTypeId')::uuid
     LEFT JOIN loans on loans.item_id = it.id
-    WHERE        
-        CASE 
-            WHEN asset_type = 'All'
-                THEN insc.name IN ('Calculator', 'Laptop', 'Hotspot')
+    WHERE
+        (campus_location = 'All' OR hl.name = campus_location)       
+        AND CASE
+            WHEN asset_type = 'All' 
+                THEN (insc.name = 'Calculator' AND m.name = 'SEM-ITEM') 
+                OR (insc.name IN ('Laptop', 'Hotspot') AND m.name = 'SEMEXTEND-ITEM');
+            WHEN asset_type = 'Calculator' 
+                THEN m.name = 'SEM-ITEM'
             ELSE 
-                insc.name = asset_type
+                m.name = 'SEMEXTEND-ITEM'
         END
-	    AND 
-        CASE 
-            WHEN material_type = 'All' 
-                THEN m.name IN ('SEM-ITEM', 'SEMEXTEND-ITEM')
-            ELSE 
-                m.name = material_type
-        END
-	    AND (campus_location = 'All' OR hl.name = campus_location)
     ORDER BY
         jsonb_extract_path_text(it.jsonb, 'barcode')
 $$

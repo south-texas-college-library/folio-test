@@ -34,6 +34,7 @@ AS $$
     )
     SELECT
         jsonb_extract_path_text(it.jsonb, 'barcode') as "Asset ID",
+        insc.name,
         loans.user_barcode as "Student A#",
         loans.full_name as "Name",
         loans.phone as "Phone Number",

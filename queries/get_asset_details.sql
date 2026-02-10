@@ -54,7 +54,7 @@ AS $$
         AND CASE
             WHEN asset_type = 'All' 
                 THEN (insc.name = 'Calculator' AND m.name = 'SEM-ITEM') 
-                OR (insc.name IN ('Laptop', 'Hotspot') AND m.name = 'SEMEXTEND-ITEM');
+                OR (insc.name IN ('Laptop', 'Hotspot') AND m.name = 'SEMEXTEND-ITEM')
             WHEN asset_type = 'Calculator' 
                 THEN m.name = 'SEM-ITEM'
             ELSE 

@@ -8,7 +8,8 @@ CREATE FUNCTION get_asset_details(
 )
 RETURNS TABLE(
     "A - Asset ID" TEXT,
-    "a - Type" TEXT,
+    "a - Statistical Code" TEXT,
+    "ab - Material Type" TEXT,
     "B - Student A#" TEXT,
     "C - Name" TEXT,
     "D - Phone Number" TEXT,
@@ -35,6 +36,7 @@ AS $$
     SELECT
         jsonb_extract_path_text(it.jsonb, 'barcode') as "Asset ID",
         insc.name,
+        m.name,
         loans.user_barcode as "Student A#",
         loans.full_name as "Name",
         loans.phone as "Phone Number",
@@ -56,9 +58,9 @@ AS $$
                 THEN (insc.name = 'Calculator' AND m.name = 'SEM-ITEM') 
                 OR (insc.name IN ('Laptop', 'Hotspot') AND m.name = 'SEMEXTEND-ITEM')
             WHEN asset_type = 'Calculator' 
-                THEN m.name = 'SEM-ITEM'
+                THEN insc.name = asset_type AND m.name = 'SEM-ITEM'
             ELSE 
-                m.name = 'SEMEXTEND-ITEM'
+                insc.name = asset_type AND m.name = 'SEMEXTEND-ITEM'
         END
     ORDER BY
         jsonb_extract_path_text(it.jsonb, 'barcode')

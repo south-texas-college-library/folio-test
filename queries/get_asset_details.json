@@ -1,7 +1,7 @@
 {
   "displayName": "Collection - Asset Details",
   "description": "This report lists assets based on their type, campus location, and filtered by the selected material type.",
-  "instructions": "Select an asset, material type, and campus location to run the report.",
+  "instructions": "Select an asset type, material type, and campus location to run the report.",
   "parameters": [
     {
       "name": "asset_type",

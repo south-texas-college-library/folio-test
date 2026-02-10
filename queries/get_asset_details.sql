@@ -9,6 +9,7 @@ CREATE FUNCTION get_asset_details(
 )
 RETURNS TABLE(
     "A - Asset ID" TEXT,
+    "a - Type" TEXT,
     "B - Student A#" TEXT,
     "C - Name" TEXT,
     "D - Phone Number" TEXT,

@@ -5,7 +5,7 @@
   "parameters": [
     {
       "name": "asset_type",
-      "displayName": "Asset",
+      "displayName": "Asset Type",
       "type": "text",
       "required": false,
       "default": "All",

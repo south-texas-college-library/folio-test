@@ -12,14 +12,6 @@
       "controlled.options": ["All", "Calculator", "Hotspot", "Laptop"]
     },
     {
-      "name": "material_type",
-      "displayName": "Material Type",
-      "type": "text",
-      "required": false,
-      "default": "All",
-      "controlled.options": ["All", "SEM-ITEM", "SEMEXTEND-ITEM"]
-    },
-    {
       "name": "campus_location",
       "displayName": "Campus Location",
       "type": "text",

@@ -4,7 +4,6 @@ DROP FUNCTION IF EXISTS get_asset_details;
 
 CREATE FUNCTION get_asset_details(
     asset_type text DEFAULT NULL,
-    material_type text DEFAULT NULL,
     campus_location text DEFAULT NULL
 )
 RETURNS TABLE(

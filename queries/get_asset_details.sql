@@ -57,7 +57,13 @@ AS $$
             ELSE 
                 insc.name = asset_type
         END
-	    AND (material_type = 'All' OR m.name = material_type)
+	    AND 
+        CASE 
+            WHEN material_type = 'All' 
+                THEN m.name IN ('SEM-ITEM', 'SEMEXTEND-ITEM')
+            ELSE 
+                m.name = material_type
+        END
 	    AND (campus_location = 'All' OR hl.name = campus_location)
     ORDER BY
         jsonb_extract_path_text(it.jsonb, 'barcode')

@@ -1,8 +1,8 @@
---metadb:function get_semester_loans
+--metadb:function semester_loans
 
-DROP FUNCTION IF EXISTS get_semester_loans;
+DROP FUNCTION IF EXISTS semester_loans;
 
-CREATE FUNCTION get_semester_loans(
+CREATE FUNCTION semester_loans(
     asset_type TEXT DEFAULT NULL,
     item_library TEXT DEFAULT NULL
 )
@@ -32,10 +32,10 @@ AS $$
 		FROM folio_inventory.instance ins
 		JOIN folio_inventory.holdings_record hr ON hr.instanceid = ins.id
 		JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
-		JOIN folio_circulation.loan l ON jsonb_extract_path_text(l.jsonb, 'itemId')::uuid = it.id
-		JOIN folio_users.users u ON u.id = jsonb_extract_path_text(l.jsonb, 'userId')::uuid
-		JOIN folio_inventory.location ll ON ll.id = jsonb_extract_path_text(l.jsonb, 'itemEffectiveLocationIdAtCheckOut')::uuid
-		join folio_inventory.loccampus lc on lc.id = jsonb_extract_path_text(ll.jsonb, 'campusId')::uuid
+		JOIN folio_circulation.loan l ON jsonb_extract_path_text(l.jsonb, 'itemId')::UUID = it.id
+		JOIN folio_users.users u ON u.id = jsonb_extract_path_text(l.jsonb, 'userId')::UUID
+		JOIN folio_inventory.location ll ON ll.id = jsonb_extract_path_text(l.jsonb, 'itemEffectiveLocationIdAtCheckOut')::UUID
+		JOIN folio_inventory.loccampus lc ON lc.id = jsonb_extract_path_text(ll.jsonb, 'campusId')::UUID
 		WHERE jsonb_extract_path_text(l.jsonb, 'status', 'name') = 'Open'
     )
     SELECT
@@ -55,8 +55,8 @@ AS $$
     JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
     JOIN folio_inventory.location__t hl ON hl.id = hr.permanentlocationid
     join folio_inventory.loclibrary__t ll ON ll.id = hl.library_id
-    JOIN folio_inventory.statistical_code__t insc ON insc.id = (jsonb_path_query_first(ins.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
-    JOIN folio_inventory.material_type__t m ON m.id = jsonb_extract_path_text(it.jsonb, 'materialTypeId')::uuid
+    JOIN folio_inventory.statistical_code__t insc ON insc.id = (jsonb_path_query_first(ins.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::UUID
+    JOIN folio_inventory.material_type__t m ON m.id = jsonb_extract_path_text(it.jsonb, 'materialTypeId')::UUID
     LEFT JOIN loans ON loans.item_id = it.id
     WHERE
         (item_library = 'All' OR ll.name = item_library)       

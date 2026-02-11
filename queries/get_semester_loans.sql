@@ -17,7 +17,7 @@ RETURNS TABLE(
     "H - Item Library" TEXT,
     "I - Check Out Library" TEXT,
     "J - Status" TEXT,
-    "K - Due Date" TIMESTAMPTZ
+    "K - Due Date" TEXT
 )
 AS $$
     WITH loans AS (

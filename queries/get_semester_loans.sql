@@ -3,8 +3,8 @@
 DROP FUNCTION IF EXISTS get_semester_loans;
 
 CREATE FUNCTION get_semester_loans(
-    asset_type text DEFAULT NULL,
-    item_library text DEFAULT NULL
+    asset_type TEXT DEFAULT NULL,
+    item_library TEXT DEFAULT NULL
 )
 RETURNS TABLE(
     "A - Asset ID" TEXT,
@@ -39,25 +39,25 @@ AS $$
 		WHERE jsonb_extract_path_text(l.jsonb, 'status', 'name') = 'Open'
     )
     SELECT
-        jsonb_extract_path_text(it.jsonb, 'barcode') as "Asset ID",
-        insc.name as "Statistical Code",
-        loans.user_barcode as "User Barcode",
-        loans.full_name as "Name",
-        loans.phone as "Phone Number",
-        loans.email as "Email",
-        NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "86e6410d-4c8b-4853-8054-bd5e563e9760").note') #>> '{}', '[\[\]"]', '', 'g'), '') as "Staff Notes",
-        ll.name as "Item Library",
-        loans.checkout_campus as "Check Out Library",
-        jsonb_extract_path_text(it.jsonb, 'status', 'name') as "Status",
-        loans.due_date::date::text as "Due Date"
+        jsonb_extract_path_text(it.jsonb, 'barcode') AS "Asset ID",
+        insc.name AS "Statistical Code",
+        loans.user_barcode AS "User Barcode",
+        loans.full_name AS "Name",
+        loans.phone AS "Phone Number",
+        loans.email AS "Email",
+        NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "86e6410d-4c8b-4853-8054-bd5e563e9760").note') #>> '{}', '[\[\]"]', '', 'g'), '') AS "Staff Notes",
+        ll.name AS "Item Library",
+        loans.checkout_campus AS "Check Out Library",
+        jsonb_extract_path_text(it.jsonb, 'status', 'name') AS "Status",
+        loans.due_date::DATE::TEXT AS "Due Date"
     FROM folio_inventory.instance ins
-    JOIN folio_inventory.holdings_record hr on hr.instanceid = ins.id
-    JOIN folio_inventory.item it on it.holdingsrecordid = hr.id
+    JOIN folio_inventory.holdings_record hr ON hr.instanceid = ins.id
+    JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
     JOIN folio_inventory.location__t hl ON hl.id = hr.permanentlocationid
-    join folio_inventory.loclibrary__t ll on ll.id = hl.library_id
+    join folio_inventory.loclibrary__t ll ON ll.id = hl.library_id
     JOIN folio_inventory.statistical_code__t insc ON insc.id = (jsonb_path_query_first(ins.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
-    JOIN folio_inventory.material_type__t m on m.id = jsonb_extract_path_text(it.jsonb, 'materialTypeId')::uuid
-    LEFT JOIN loans on loans.item_id = it.id
+    JOIN folio_inventory.material_type__t m ON m.id = jsonb_extract_path_text(it.jsonb, 'materialTypeId')::uuid
+    LEFT JOIN loans ON loans.item_id = it.id
     WHERE
         (item_library = 'All' OR ll.name = item_library)       
         AND CASE

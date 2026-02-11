@@ -16,7 +16,7 @@ RETURNS TABLE(
     "G - Staff Notes" TEXT,
     "H - Item Library" TEXT,
     "I - Check Out Library" TEXT,
-    "J - Status" TEXT
+    "J - Status" TEXT,
     "K - Due Date" TIMESTAMPTZ
 )
 AS $$

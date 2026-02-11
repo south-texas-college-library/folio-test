@@ -1,0 +1,31 @@
+{
+  "displayName": "Collection - Semester Loans",
+  "description": "This report lists the semester loan assets based on their type and item library.",
+  "instructions": "Select an asset type and and item library to run the report.",
+  "parameters": [
+    {
+      "name": "asset_type",
+      "displayName": "Asset Type",
+      "type": "text",
+      "required": false,
+      "default": "All",
+      "controlled.options": ["All", "Calculator", "Hotspot", "Laptop"]
+    },
+    {
+      "name": "item_library",
+      "displayName": "Item Library",
+      "type": "text",
+      "required": false,
+      "default": "All",
+      "controlled.options": [
+        "All",
+        "HSP",
+        "Mid-Valley",
+        "Pecan",
+        "RCPSE",
+        "Starr County",
+        "Technology"
+      ]
+    }
+  ]
+}

@@ -1,11 +1,11 @@
 {
   "displayName": "Collection - Semester Loans",
   "description": "This report lists the semester loan assets based on their type and item library.",
-  "instructions": "Select an asset type and and item library to run the report.",
+  "instructions": "Select a subtype and and item library to run the report.",
   "parameters": [
     {
-      "name": "asset_type",
-      "displayName": "Asset Type",
+      "name": "subtype",
+      "displayName": "Subtype",
       "type": "text",
       "required": false,
       "default": "All",

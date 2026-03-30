@@ -20,7 +20,7 @@ RETURNS TABLE(
     "K - Due Date" TEXT
 )
 AS $$
-    WITH loans AS (
+    WITH loans AS MATERIALIZED (
         SELECT
             it.id AS item_id,
             jsonb_extract_path_text(l.jsonb, 'dueDate') AS due_date,
@@ -54,7 +54,7 @@ AS $$
     JOIN folio_inventory.holdings_record hr ON hr.instanceid = ins.id
     JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
     JOIN folio_inventory.location__t hl ON hl.id = hr.permanentlocationid
-    join folio_inventory.loclibrary__t ll ON ll.id = hl.library_id
+    JOIN folio_inventory.loclibrary__t ll ON ll.id = hl.library_id
     JOIN folio_inventory.statistical_code__t insc ON insc.id = (jsonb_path_query_first(ins.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::UUID
     JOIN folio_inventory.material_type__t m ON m.id = jsonb_extract_path_text(it.jsonb, 'materialTypeId')::UUID
     LEFT JOIN loans ON loans.item_id = it.id

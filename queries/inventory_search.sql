@@ -75,6 +75,8 @@ AS $$
         hr.call_number ~ '^[A-Z]{1,3}\s*[0-9]'
         AND hr.call_number between start_cn and end_cn
         AND (subject IS NULL OR TO_TSVECTOR('english', REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value')::text, '[\[\]"]', '', 'g')) @@ WEBSEARCH_TO_TSQUERY('english', subject))
+    ORDER BY
+        hr.call_number, jsonb_extract_path_text(it.jsonb , 'barcode')
     $$
 LANGUAGE SQL
 STABLE

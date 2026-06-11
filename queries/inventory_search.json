@@ -20,6 +20,51 @@
       "displayName": "Subject",
       "type": "text",
       "required": false
+    },
+    {
+      "name": "material_type",
+      "displayName": "Material Type",
+      "type": "text",
+      "required": false,
+      "default": "All",
+      "controlled.options": [
+        "All",
+        "2HR-ITEM",
+        "3HR-ITEM",
+        "4HR-ITEM",
+        "2DAY-ITEM",
+        "3DAY-ITEM",
+        "7DAY-ITEM",
+        "28DAY-ITEM",
+        "AV-ITEM",
+        "BOOK",
+        "CLE-ITEM",
+        "DAYUSE-ITEM",
+        "EBOOK",
+        "ILL-ITEM",
+        "OTHER",
+        "RSV-ITEM",
+        "SEM-ITEM",
+        "SEMEXTEND-ITEM",
+        "SERIAL"
+      ]
+    },
+    {
+      "name": "item_campus",
+      "displayName": "Item Campus",
+      "type": "text",
+      "required": false,
+      "default": "All",
+      "controlled.options": [
+        "All",
+        "Mid-Valley",
+        "HSP",
+        "Online",
+        "Pecan",
+        "RCPSE",
+        "Starr County",
+        "Technology"
+      ]
     }
   ]
 }

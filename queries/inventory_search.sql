@@ -78,7 +78,7 @@ AS $$
         AND hr.call_number between start_cn and end_cn
         AND (subject IS NULL OR TO_TSVECTOR('english', REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value')::text, '[\[\]"]', '', 'g')) @@ WEBSEARCH_TO_TSQUERY('english', subject))
         AND (material_type = 'All' OR mt.name = material_type)
-        AND (item_campus = 'All' OR lc.name = item_location)
+        AND (item_campus = 'All' OR lc.name = item_campus)
     ORDER BY
         hr.call_number, jsonb_extract_path_text(it.jsonb , 'barcode')
     $$

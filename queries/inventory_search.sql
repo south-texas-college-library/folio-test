@@ -3,9 +3,9 @@
 DROP FUNCTION IF EXISTS inventory_search;
 
 CREATE FUNCTION inventory_search(
-    subject text DEFAULT NULL,
-    start_cn text DEFAULT 'A',
-    end_cn text DEFAULT 'ZZZ 9999.999'
+    subject TEXT DEFAULT NULL,
+    start_cn TEXT DEFAULT 'A',
+    end_cn TEXT DEFAULT 'ZZZ 9999.999'
 ) 
 RETURNS TABLE(
     "A - Title" TEXT,
@@ -13,19 +13,20 @@ RETURNS TABLE(
     "C - Author" TEXT,
     "D - Call Number" TEXT,
     "E - Item Barcode" TEXT,
-    "F - Item Price" TEXT,
-    "G - Item Type" TEXT,
-    "H - Date Created" TEXT,
-    "I - Publication Date" TEXT,
-    "J - Identifiers" TEXT,
-    "K - Home Location" TEXT,
-    "L - Current Location" TEXT,
-    "M - Subjects" TEXT,
-    "N - Total Renewals" INTEGER,
-    "O - Total Checkouts" INTEGER,
-	"P - Publisher" TEXT,
-    "Q - Content" TEXT,
-    "R - Subtype" TEXT
+    "F - Item Status" TEXT,
+    "G - Item Price" TEXT,
+    "H - Item Type" TEXT,
+    "I - Date Created" TEXT,
+    "J - Publication Date" TEXT,
+    "K - Identifiers" TEXT,
+    "L - Home Location" TEXT,
+    "M - Current Location" TEXT,
+    "N - Subjects" TEXT,
+    "O - Total Renewals" INTEGER,
+    "P - Total Checkouts" INTEGER,
+	"Q - Publisher" TEXT,
+    "R - Content" TEXT,
+    "S - Subtype" TEXT
 )
 AS $$
     WITH loans AS (
@@ -48,16 +49,16 @@ AS $$
         NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "1fceb11c-7a89-49d6-8ef0-2a42c58556a2").note') #>> '{}', '[\[\]"]', '', 'g'), ''),
         mt.name,
         jsonb_extract_path_text(ins.jsonb , 'catalogedDate'),
-        GREATEST(jsonb_extract_path_text(ins.jsonb, 'dates', 'date1'), jsonb_extract_path_text(ins.jsonb, 'dates', 'date2')) AS "Publicated Date",
-        NULLIF(REGEXP_REPLACE(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.identifiers[*].value') #>> '{}', ' :.*?\$\d+\.\d{2}', '', 'g'), '[\[\]"]', '', 'g'), '') AS "Identifiers",
-        hl.name AS "Home Location",
-        il.name AS "Current Location",
-        REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[\[\]"]', '', 'g') AS "Subjects",
-        COALESCE(loans.checkouts, 0) AS "Checkouts",
-        COALESCE(loans.renewals, 0) AS "Renewals",
-        jsonb_path_query_first(ins.jsonb, '$.publication[*].publisher') #>> '{}' AS "Publisher",
-        jsonb_extract_path_text(insc.jsonb, 'name') AS "Subtype",
-        jsonb_extract_path_text(itsc.jsonb, 'name') AS "Fund"
+        GREATEST(jsonb_extract_path_text(ins.jsonb, 'dates', 'date1'), jsonb_extract_path_text(ins.jsonb, 'dates', 'date2')),
+        NULLIF(REGEXP_REPLACE(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.identifiers[*].value') #>> '{}', ' :.*?\$\d+\.\d{2}', '', 'g'), '[\[\]"]', '', 'g'), ''),
+        hl.name,
+        il.name,
+        REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[\[\]"]', '', 'g'),
+        COALESCE(loans.checkouts, 0),
+        COALESCE(loans.renewals, 0),
+        jsonb_path_query_first(ins.jsonb, '$.publication[*].publisher') #>> '{}',
+        jsonb_extract_path_text(insc.jsonb, 'name'),
+        jsonb_extract_path_text(itsc.jsonb, 'name')
     FROM
         folio_inventory.instance ins
         JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id

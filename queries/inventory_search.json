@@ -1,0 +1,25 @@
+{
+  "displayName": "Collection - Inventory Search",
+  "description": "This report can search for item records within a call number range and that may contain optional subject terms.",
+  "instructions": "Input the optional call number range and subject(s) for items you would like to search for.\n\nTo search for multiple subjects, type OR between each subject.\n\nTo exclude a subject, type - before the subject.",
+  "parameters": [
+    {
+      "name": "start_cn",
+      "displayName": "Start Call Number",
+      "type": "text",
+      "required": false
+    },
+    {
+      "name": "end_cn",
+      "displayName": "End Call Number",
+      "type": "text",
+      "required": false
+    },
+    {
+      "name": "subject",
+      "displayName": "Subject",
+      "type": "text",
+      "required": false
+    }
+  ]
+}

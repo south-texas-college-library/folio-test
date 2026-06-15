@@ -49,7 +49,7 @@ AS $$
         hr.call_number,
         jsonb_extract_path_text(it.jsonb , 'barcode'),
         jsonb_extract_path_text(it.jsonb , 'status', 'name'),
-        jsonb_path_query_first(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "1fceb11c-7a89-49d6-8ef0-2a42c58556a2").note') #>> '{}',
+        REGEXP_REPLACE(COALESCE(jsonb_path_query_first(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "1fceb11c-7a89-49d6-8ef0-2a42c58556a2").note') #>> '{}', '0.00'), '^\$*', '$') AS "Price",
         mt.name,
         jsonb_extract_path_text(ins.jsonb , 'catalogedDate'),
         GREATEST(jsonb_extract_path_text(ins.jsonb, 'dates', 'date1'), jsonb_extract_path_text(ins.jsonb, 'dates', 'date2')),

@@ -82,8 +82,8 @@ AS $$
         AND (item_campus = 'All' OR lc.name = item_campus)
         AND CASE item_department
             WHEN 'Library' THEN hr.call_number ~ '^[A-Z]{1,3}\s*[0-9]' AND il.name !~* '(CLE|Open Lab)'
-            WHEN 'CLE' THEN hr.call_number !~ '^[A-Z]{1,3}\s*[0-9]' AND il.name !~* '(CLE)'
-            WHEN 'Open Labs' THEN hr.call_number !~ '^[A-Z]{1,3}\s*[0-9]' AND il.name !~* '(Open Lab)'
+            WHEN 'CLE' THEN hr.call_number !~ '^[A-Z]{1,3}\s*[0-9]' AND il.name ~* '(CLE)'
+            WHEN 'Open Labs' THEN hr.call_number !~ '^[A-Z]{1,3}\s*[0-9]' AND il.name ~* '(Open Lab)'
             ELSE true
         END
     ORDER BY

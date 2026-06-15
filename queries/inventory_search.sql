@@ -7,7 +7,8 @@ CREATE FUNCTION inventory_search(
     start_cn TEXT DEFAULT 'A',
     end_cn TEXT DEFAULT 'ZZZ 9999.999',
     material_type text DEFAULT NULL,
-    item_campus text DEFAULT NULL
+    item_campus text DEFAULT NULL,
+    item_department text DEFAULT NULL
 ) 
 RETURNS TABLE(
     "A - Title" TEXT,
@@ -79,6 +80,12 @@ AS $$
         AND (subject IS NULL OR TO_TSVECTOR('english', REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value')::text, '[\[\]"]', '', 'g')) @@ WEBSEARCH_TO_TSQUERY('english', subject))
         AND (material_type = 'All' OR mt.name = material_type)
         AND (item_campus = 'All' OR lc.name = item_campus)
+        AND CASE item_department
+            WHEN 'Library' THEN hr.call_number ~ '^[A-Z]{1,3}\s*[0-9]' AND 
+            WHEN 'CLE' THEN hr.call_number !~ '^[A-Z]{1,3}\s*[0-9]' AND il.name LIKE '%CLE%'
+            WHEN 'Open Labs' THEN hr.call_number !~ '^[A-Z]{1,3}\s*[0-9]' AND il.name LIKE '%Open Lab%'
+            ELSE true
+        END
     ORDER BY
         hr.call_number, jsonb_extract_path_text(it.jsonb , 'barcode')
     $$

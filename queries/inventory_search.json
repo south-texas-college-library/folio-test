@@ -65,6 +65,14 @@
         "Starr County",
         "Technology"
       ]
+    },
+    {
+      "name": "item_department",
+      "displayName": "Item Department",
+      "type": "text",
+      "required": false,
+      "default": "All",
+      "controlled.options": ["All", "CLE", "Library", "Open Labs"]
     }
   ]
 }

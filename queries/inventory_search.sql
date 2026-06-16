@@ -7,8 +7,8 @@ CREATE FUNCTION inventory_search(
     start_cn TEXT DEFAULT 'A',
     end_cn TEXT DEFAULT 'ZZZ 9999.999',
     material_type text DEFAULT NULL,
-    item_campus text DEFAULT NULL,
-    item_department text DEFAULT NULL
+    campus text DEFAULT NULL,
+    department text DEFAULT NULL
 ) 
 RETURNS TABLE(
     "A - Title" TEXT,
@@ -77,8 +77,8 @@ AS $$
     WHERE
         (subject IS NULL OR TO_TSVECTOR('english', REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value')::text, '[\[\]"]', '', 'g')) @@ WEBSEARCH_TO_TSQUERY('english', subject))
         AND (material_type = 'All' OR mt.name = material_type)
-        AND (item_campus = 'All' OR lc.name = item_campus)
-        AND CASE item_department
+        AND (campus = 'All' OR lc.name = campus)
+        AND CASE department
             WHEN 'Library' THEN COALESCE(hr.call_number, '') ~ '^[A-Z]{1,3}\s*[0-9]' AND il.name !~* '(CLE|Open Lab)'
             WHEN 'CLE' THEN COALESCE(hr.call_number, '') !~ '^[A-Z]{1,3}\s*[0-9]' AND il.name ~* '(CLE)'
             WHEN 'Open Labs' THEN COALESCE(hr.call_number, '') !~ '^[A-Z]{1,3}\s*[0-9]' AND il.name ~* '(Open Lab)'

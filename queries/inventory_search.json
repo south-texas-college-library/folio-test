@@ -50,8 +50,8 @@
       ]
     },
     {
-      "name": "item_campus",
-      "displayName": "Item Campus",
+      "name": "campus",
+      "displayName": "Campus",
       "type": "text",
       "required": false,
       "default": "All",
@@ -67,8 +67,8 @@
       ]
     },
     {
-      "name": "item_department",
-      "displayName": "Item Department",
+      "name": "department",
+      "displayName": "Department",
       "type": "text",
       "required": false,
       "default": "All",

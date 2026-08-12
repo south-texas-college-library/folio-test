@@ -7,16 +7,16 @@ CREATE FUNCTION lib_banner_holds(
     max_fee numeric DEFAULT 1000000.00
 )
 RETURNS TABLE(
-    a_fee_date text,
-    b_stc_id text,
-    c_patron_profile text,
-    d_username text,
-    e_last_name text,
-    f_first_name text,
-    g_barcode text,/*
-    h_barcode_url text,*/
-    i_item_title text,
-    j_fee_balance text
+    fee_date text,
+    stc_id text,
+    patron_profile text,
+    username text,
+    last_name text,
+    first_name text,
+    barcode text,/*
+    barcode_url text,*/
+    item_title text,
+    fee_balance text
 )
 AS $$
 SELECT

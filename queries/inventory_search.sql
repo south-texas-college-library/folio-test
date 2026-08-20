@@ -136,9 +136,9 @@ FROM
         AND (material_type = 'All' OR mt.name = material_type)
         AND (campus = 'All' OR lc.name = campus)
         AND CASE department
-            WHEN 'Library' THEN COALESCE(hr.call_number, '') ~ '^[A-Z]{1,3}\s*[0-9]' AND il.name !~* '(CLE|Open Lab)'
-            WHEN 'CLE' THEN COALESCE(hr.call_number, '') !~ '^[A-Z]{1,3}\s*[0-9]' AND il.name ~* '(CLE)'
-            WHEN 'Open Lab' THEN COALESCE(hr.call_number, '') !~ '^[A-Z]{1,3}\s*[0-9]' AND il.name ~* '(Open Lab)'
+            WHEN 'Library' THEN COALESCE(hr.call_number, '') ~ '^[A-Z]{1,3}\s*[0-9]' AND hl.name !~* '(CLE|Open Lab)'
+            WHEN 'CLE' THEN COALESCE(hr.call_number, '') !~ '^[A-Z]{1,3}\s*[0-9]' AND hl.name ~* '(CLE)'
+            WHEN 'Open Lab' THEN COALESCE(hr.call_number, '') !~ '^[A-Z]{1,3}\s*[0-9]' AND hl.name ~* '(Open Lab)'
             ELSE TRUE
         END
         AND CASE search_type

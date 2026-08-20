@@ -22,6 +22,26 @@
       "required": false
     },
     {
+      "name": "title",
+      "displayName": "Title",
+      "type": "text",
+      "required": false
+    },
+    {
+      "name": "search_type",
+      "displayName": "Search Type",
+      "type": "text",
+      "required": false,
+      "default": "Contains All",
+      "controlled.options": [
+        "Contains All",
+        "Exact Match",
+        "Contains Any",
+        "Starts With",
+        "Ends With"
+      ]
+    },
+    {
       "name": "material_type",
       "displayName": "Material Type",
       "type": "text",
@@ -72,7 +92,7 @@
       "type": "text",
       "required": false,
       "default": "All",
-      "controlled.options": ["All", "CLE", "Library", "Open Labs"]
+      "controlled.options": ["All", "CLE", "Library", "Open Lab"]
     }
   ]
 }

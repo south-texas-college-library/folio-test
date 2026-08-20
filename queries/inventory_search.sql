@@ -6,11 +6,12 @@ CREATE FUNCTION inventory_search(
     start_cn TEXT DEFAULT 'A',
     end_cn TEXT DEFAULT 'ZZZ 9999.999',
     subject TEXT DEFAULT NULL,
+    title TEXT DEFAULT NULL,
     search_type TEXT DEFAULT NULL,
     material_type TEXT DEFAULT NULL,
     campus TEXT DEFAULT NULL,
     department TEXT DEFAULT NULL
-) -- get loans for only that are currently opened
+)
 RETURNS TABLE(
     "Barcode" TEXT,
     "Call Number" TEXT,
@@ -22,17 +23,27 @@ RETURNS TABLE(
     "Subjects" TEXT,
     "Cataloged Date" TEXT,
     "Content" TEXT,
-    "Subtype" TEXT
+    "Subtype" TEXT,
     "Department" TEXT,
     "Campus" TEXT,
     "Location" TEXT,
     "Temporary Location" TEXT,
     "Material Type" TEXT,
     "Created Date" TEXT,
-    "Status" TEXT,
+    "Fund" TEXT,
+    "Inventory Date" TEXT,
+    "PO Number" TEXT,
+    "Invoice" TEXT,
+    "Ownership" TEXT,
     "Price" TEXT,
-    "Renewals" INTEGER,
+    "Public Notes" TEXT,
+    "Circulation Notes" TEXT,
+    "Staff Notes" TEXT,
     "Checkouts" INTEGER,
+    "Renewals" INTEGER,
+    "Status" TEXT,
+    "Loan Date" TEXT,
+    "Due Date" TEXT
 )
 AS $$
 WITH loans AS (

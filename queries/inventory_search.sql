@@ -5,7 +5,7 @@ DROP FUNCTION IF EXISTS inventory_search;
 CREATE FUNCTION inventory_search(
     start_cn TEXT DEFAULT 'A',
     end_cn TEXT DEFAULT 'ZZZ 9999.999',
-    subject TEXT DEFAULT NULL,
+    subjects TEXT DEFAULT NULL,
     title TEXT DEFAULT NULL,
     search_type TEXT DEFAULT NULL,
     material_type TEXT DEFAULT NULL,
@@ -132,7 +132,7 @@ FROM
     LEFT JOIN stats ON stats.item_id = it.id
     LEFT JOIN codes ON codes.instance_id = ins.id
     WHERE
-        (subject IS NULL OR TO_TSVECTOR('english', NULLIF(TRANSLATE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[]"', ''), '')))
+        (subjects IS NULL OR TO_TSVECTOR('english', NULLIF(TRANSLATE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[]"', ''), '')) @@ WEBSEARCH_TO_TSQUERY('english', subjects))
         AND (material_type = 'All' OR mt.name = material_type)
         AND (campus = 'All' OR lc.name = campus)
         AND CASE department
@@ -142,9 +142,9 @@ FROM
             ELSE TRUE
         END
         AND CASE search_type
-            WHEN 'Contains All' THEN (title IS NULL OR TO_TSVECTOR(jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('english', subject))
-            WHEN 'Exact Match' THEN (title IS NULL OR TO_TSVECTOR(jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('"' || subject || '"'))
-            WHEN 'Contains Any' THEN (title IS NULL OR TO_TSVECTOR(jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('english', replace(subject, ' ', ' OR ' )))
+            WHEN 'Contains All' THEN (title IS NULL OR TO_TSVECTOR(jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('english', title))
+            WHEN 'Exact Match' THEN (title IS NULL OR TO_TSVECTOR(jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('"' || title || '"'))
+            WHEN 'Contains Any' THEN (title IS NULL OR TO_TSVECTOR(jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('english', replace(title, ' ', ' OR ' )))
             WHEN 'Starts With' THEN (title IS NULL OR jsonb_extract_path_text(ins.jsonb, 'title') ILIKE ('%' || title))
             WHEN 'Ends With' THEN (title IS NULL OR jsonb_extract_path_text(ins.jsonb, 'title') ILIKE (title || '%'))
             ELSE TRUE

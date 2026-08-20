@@ -16,8 +16,8 @@
       "required": false
     },
     {
-      "name": "subject",
-      "displayName": "Subject",
+      "name": "subjects",
+      "displayName": "Subjects",
       "type": "text",
       "required": false
     },

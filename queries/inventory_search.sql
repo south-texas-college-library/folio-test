@@ -44,7 +44,8 @@ RETURNS TABLE(
     "Renewals" INTEGER,
     "Status" TEXT,
     "Loan Date" TEXT,
-    "Due Date" TEXT
+    "Due Date" TEXT,
+    "SUBTYPE" TEXT
 )
 AS $$
 WITH loans AS (
@@ -122,7 +123,8 @@ SELECT
     COALESCE(stats.renewals, 0) as "Renewals",
     jsonb_extract_path_text(it.jsonb , 'status', 'name') as "Status",
     loans.loan_date as "Loan Date",
-    loans.due_date as "Due Date"
+    loans.due_date as "Due Date",
+    subtype as "SUBTYPE TEST"
 FROM
     folio_inventory.instance ins
     JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
@@ -154,7 +156,7 @@ FROM
             ELSE TRUE
         END
         AND (hr.call_number IS NULL OR hr.call_number between start_cn and end_cn)
-        AND (subtype = 'All' OR codes.subtype = 'Kit')
+        AND (subtype = 'All' OR codes.subtype = 'Hotspot')
     ORDER BY
         hr.call_number, jsonb_extract_path_text(it.jsonb , 'barcode')
     $$

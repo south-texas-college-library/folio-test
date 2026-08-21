@@ -154,7 +154,7 @@ FROM
             ELSE TRUE
         END
         AND (hr.call_number IS NULL OR hr.call_number between start_cn and end_cn)
-        AND (sub_type = 'All' OR codes.subtype = sub_type)
+        AND (sub_type = 'All' OR codes.subtype = 'Journal')
     ORDER BY
         hr.call_number, jsonb_extract_path_text(it.jsonb , 'barcode')
     $$

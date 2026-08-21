@@ -122,7 +122,7 @@ SELECT
     COALESCE(stats.renewals, 0) as "Renewals",
     jsonb_extract_path_text(it.jsonb , 'status', 'name') as "Status",
     loans.loan_date as "Loan Date",
-    loans.due_date as "Due Date",
+    loans.due_date as "Due Date"
 FROM
     folio_inventory.instance ins
     JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id

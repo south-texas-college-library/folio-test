@@ -9,6 +9,7 @@ CREATE FUNCTION inventory_search(
     title TEXT DEFAULT NULL,
     search_type TEXT DEFAULT NULL,
     material_type TEXT DEFAULT NULL,
+    subtype TEXT DEFAULT NULL,
     campus TEXT DEFAULT NULL,
     department TEXT DEFAULT NULL
 )
@@ -145,14 +146,15 @@ FROM
             ELSE TRUE
         END
         AND CASE search_type
-            WHEN 'Contains All' THEN (title IS NULL OR TO_TSVECTOR(jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('english', title))
+            WHEN 'Contains All' THEN (title IS NULL OR TO_TSVECTOR('english', jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('english', title))
             WHEN 'Exact Match' THEN (title IS NULL OR TO_TSVECTOR(jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('"' || title || '"'))
-            WHEN 'Contains Any' THEN (title IS NULL OR TO_TSVECTOR(jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('english', replace(title, ' ', ' OR ' )))
+            WHEN 'Contains Any' THEN (title IS NULL OR TO_TSVECTOR('english', jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('english', replace(title, ' ', ' OR ' )))
             WHEN 'Starts With' THEN (title IS NULL OR jsonb_extract_path_text(ins.jsonb, 'title') ILIKE (title || '%'))
             WHEN 'Ends With' THEN (title IS NULL OR jsonb_extract_path_text(ins.jsonb, 'title') ILIKE ('%' || title))
             ELSE TRUE
         END
-        AND hr.call_number between start_cn and end_cn
+        AND (hr.call_number IS NULL OR hr.call_number between start_cn and end_cn)
+        AND (subtype = 'All' OR codes.subtype = subtype)
     ORDER BY
         hr.call_number, jsonb_extract_path_text(it.jsonb , 'barcode')
     $$

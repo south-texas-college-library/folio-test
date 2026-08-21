@@ -1,7 +1,7 @@
 {
   "displayName": "Collection - Inventory Search",
-  "description": "This report can search for item records within a call number range and that may contain optional subject terms.",
-  "instructions": "Input the optional call number range and subject(s) for items you would like to search for.\n\nTo search for multiple subjects, type OR between each subject.\n\nTo exclude a subject, type - before the subject.",
+  "description": "Search inventory records using a combination of call number range, title, subject, material type, subtype, campus, and department filters. Results include items that match the selected criteria.",
+  "instructions": "Enter any combination of search criteria to locate inventory items. Optional filters: \n\n\n• Call Number Range (Start/End)\n\n\n• Title and Search Type\n\n\n• Subjects (use OR between terms; use - to exclude a term)\n\n\n• Material Type\n\n\n• Subtype• Campus• Department\n\n\nLeave a field blank or select All to include all values for that filter.",
   "parameters": [
     {
       "name": "start_cn",
@@ -67,6 +67,26 @@
         "SEM-ITEM",
         "SEMEXTEND-ITEM",
         "SERIAL"
+      ]
+    },
+    {
+      "name": "subtype",
+      "displayName": "Subtype",
+      "type": "text",
+      "required": false,
+      "default": "All",
+      "controlled.options": [
+        "All",
+        "AV Equipment",
+        "Calculator",
+        "Community User Station",
+        "Hotspot",
+        "Journal",
+        "Laptop",
+        "Magazine",
+        "Newsletter",
+        "Headphones",
+        "Kit"
       ]
     },
     {

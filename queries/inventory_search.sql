@@ -83,7 +83,10 @@ codes AS (
 SELECT
     jsonb_extract_path_text(it.jsonb , 'barcode') as "Barcode",
     hr.call_number as "Call Number",
-    GREATEST(jsonb_extract_path_text(ins.jsonb, 'dates', 'date1'), jsonb_extract_path_text(ins.jsonb, 'dates', 'date2')) as "Publication Date",
+    COALESCE(
+    	GREATEST(jsonb_extract_path_text(ins.jsonb, 'dates', 'date1'), jsonb_extract_path_text(ins.jsonb, 'dates', 'date2')),
+    	REGEXP_REPLACE(jsonb_path_query_first(ins.jsonb, '$.publication[*].dateOfPublication') #>> '{}', '[^0-9?,\s-]', '', 'g')
+	) as "Publication Date",
     jsonb_extract_path_text(ins.jsonb, 'title') as "Title",
     jsonb_path_query_first(ins.jsonb, '$.contributors[*].name') #>> '{}' as "Author",	
     NULLIF(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.identifiers[*].value') #>> '{}', '\[|\]|"| :.*?\$\d+\.\d{2}', '', 'g'), '') as "ISBN",

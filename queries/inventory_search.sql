@@ -3,7 +3,7 @@
 DROP FUNCTION IF EXISTS inventory_search;
 
 CREATE FUNCTION inventory_search(
-    start_cn TEXT DEFAULT 'A',
+    start_cn TEXT DEFAULT '0',
     end_cn TEXT DEFAULT 'ZZZ 9999.999',
     subjects TEXT DEFAULT NULL,
     title TEXT DEFAULT NULL,
@@ -154,9 +154,9 @@ FROM
             ELSE TRUE
         END
         AND (hr.call_number IS NULL OR hr.call_number between start_cn and end_cn)
-        AND (sub_type = 'All' OR codes.subtype = 'Journal')
+        AND (sub_type = 'All' OR codes.subtype = sub_type)
     ORDER BY
-        hr.call_number, jsonb_extract_path_text(it.jsonb , 'barcode')
+        hr.call_number, jsonb_extract_path_text(it.jsonb, 'barcode')
     $$
 LANGUAGE SQL
 STABLE

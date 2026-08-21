@@ -3,8 +3,8 @@
 DROP FUNCTION IF EXISTS inventory_search;
 
 CREATE FUNCTION inventory_search(
-    start_cn TEXT DEFAULT '',
-    end_cn TEXT DEFAULT '~',
+    start_cn TEXT DEFAULT '0',
+    end_cn TEXT DEFAULT 'ZZZZZZZZ',
     subjects TEXT DEFAULT NULL,
     title TEXT DEFAULT NULL,
     search_type TEXT DEFAULT NULL,

@@ -9,7 +9,7 @@ CREATE FUNCTION inventory_search(
     title TEXT DEFAULT NULL,
     search_type TEXT DEFAULT NULL,
     material_type TEXT DEFAULT NULL,
-    subtype TEXT DEFAULT NULL,
+    sub_type TEXT DEFAULT NULL,
     campus TEXT DEFAULT NULL,
     department TEXT DEFAULT NULL
 )
@@ -124,7 +124,7 @@ SELECT
     jsonb_extract_path_text(it.jsonb , 'status', 'name') as "Status",
     loans.loan_date as "Loan Date",
     loans.due_date as "Due Date",
-    subtype as "SUBTYPE TEST"
+    sub_type as "SUBTYPE TEST"
 FROM
     folio_inventory.instance ins
     JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id

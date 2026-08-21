@@ -70,7 +70,7 @@
       ]
     },
     {
-      "name": "subtype",
+      "name": "sub_type",
       "displayName": "Subtype",
       "type": "text",
       "required": false,

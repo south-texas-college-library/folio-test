@@ -137,11 +137,11 @@ AS $$
     ),
     codes AS (
         SELECT
-            inventory.instance_id AS instance_id,
+            inv.instance_id AS instance_id,
             MAX(sct.name) FILTER (WHERE sctt.name = 'CONTENT') AS content,
             MAX(sct.name) FILTER (WHERE sctt.name = 'SUBTYPE') AS subtype,
             MAX(sct.name) FILTER (WHERE sctt.name = 'FUND') AS fund
-        from inventory inv
+        FROM inventory inv
         CROSS JOIN LATERAL jsonb_array_elements_text(
             jsonb_path_query_array(inv.instance_jsonb, '$.statisticalCodeIds[*]') || jsonb_path_query_array(inv.item_jsonb, '$.statisticalCodeIds[*]')
         ) stat_id

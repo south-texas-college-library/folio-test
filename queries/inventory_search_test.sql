@@ -116,7 +116,7 @@ AS $$
                 END
                 AND (hr.call_number IS NULL OR hr.call_number between start_cn and end_cn)
     ),
-    loans AS MATERIALIZED (
+    loans AS (
         SELECT
             jsonb_extract_path_text(l.jsonb, 'itemId')::uuid AS item_id,
             jsonb_extract_path_text(l.jsonb, 'loanDate') AS loan_date,
@@ -125,7 +125,7 @@ AS $$
         JOIN folio_circulation.loan l on jsonb_extract_path_text(l.jsonb, 'itemId')::uuid = inv.item_id
         WHERE jsonb_extract_path_text(l.jsonb, 'status', 'name') = 'Open'
     ),
-    stats AS MATERIALIZED (
+    stats AS (
         SELECT
             l.item_id AS item_id,
             COUNT(l.id) AS checkouts,
@@ -135,7 +135,7 @@ AS $$
         GROUP BY 
             l.item_id
     ),
-    codes AS MATERIALIZED (
+    codes AS (
         SELECT
             inv.instance_id AS instance_id,
             MAX(sct.name) FILTER (WHERE sctt.name = 'CONTENT') AS content,

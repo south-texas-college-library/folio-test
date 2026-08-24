@@ -47,37 +47,37 @@ RETURNS TABLE(
     "Due Date" TEXT
 )
 AS $$
-    WITH inventory as materialized (
-        select
-            ins.id as instance_id,
-            it.id as item_id,
-            ins.jsonb as instance_jsonb,
-            it.jsonb as item_jsonb,
-            jsonb_extract_path_text(it.jsonb , 'barcode') as barcode,
-            hr.call_number as call_number,
+    WITH inventory AS MATERIALIZED (
+        SELECT
+            ins.id AS instance_id,
+            it.id AS item_id,
+            ins.jsonb AS instance_jsonb,
+            it.jsonb AS item_jsonb,
+            jsonb_extract_path_text(it.jsonb , 'barcode') AS barcode,
+            hr.call_number AS call_number,
             COALESCE(
                 GREATEST(jsonb_extract_path_text(ins.jsonb, 'dates', 'date1'), jsonb_extract_path_text(ins.jsonb, 'dates', 'date2')),
                 REGEXP_REPLACE(jsonb_path_query_first(ins.jsonb, '$.publication[*].dateOfPublication') #>> '{}', '[^0-9?,\s-]', '', 'g')
-            ) as publication_date,
-            jsonb_extract_path_text(ins.jsonb, 'title') as title,
-            jsonb_path_query_first(ins.jsonb, '$.contributors[*].name') #>> '{}' as author,	
-            NULLIF(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.identifiers[*].value') #>> '{}', '\[|\]|"| :.*?\$\d+\.\d{2}', '', 'g'), '') as isbn,
-            jsonb_path_query_first(ins.jsonb, '$.publication[*].publisher') #>> '{}' as publisher,
-            NULLIF(TRANSLATE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[]"', ''), '') as subjects,
-            jsonb_extract_path_text(ins.jsonb, 'catalogedDate') as cataloged_date,
+            ) AS publication_date,
+            jsonb_extract_path_text(ins.jsonb, 'title') AS title,
+            jsonb_path_query_first(ins.jsonb, '$.contributors[*].name') #>> '{}' AS author,	
+            NULLIF(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.identifiers[*].value') #>> '{}', '\[|\]|"| :.*?\$\d+\.\d{2}', '', 'g'), '') AS isbn,
+            jsonb_path_query_first(ins.jsonb, '$.publication[*].publisher') #>> '{}' AS publisher,
+            NULLIF(TRANSLATE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[]"', ''), '') AS subjects,
+            jsonb_extract_path_text(ins.jsonb, 'catalogedDate') AS cataloged_date,
             CASE
                 WHEN hl.name ~* 'CLE' THEN 'CLE'
                 WHEN hl.name ~* 'Open Lab' THEN 'Open Lab'
                 ELSE 'Library'
             END AS department,
-            lc.name as campus,
-            hl.name as location,
-            tl.name as temporary_location,
-            mt.name as material_type,
+            lc.name AS campus,
+            hl.name AS location,
+            tl.name AS temporary_location,
+            mt.name AS material_type,
             COALESCE(
                 TO_DATE(split_part(jsonb_path_query_first(it.jsonb, '$.administrativeNotes[*]') #>> '{}', ': ', 2), 'YYYYMMDD')::text,
                 jsonb_extract_path_text(it.jsonb, 'metadata', 'createdDate')::date::text
-            ) as created_date,
+            ) AS created_date,
             NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "e1f34ba3-6d37-462e-878c-17f922b13d93").note') #>> '{}', '[]"', ''), '') AS inventory_date,
             NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "5ec4ca65-aacc-4f16-aa9d-395efd89f850").note') #>> '{}', '[]"', ''), '') AS po_number,
             NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "8f99bd3a-706c-45d2-89d8-8eca7fa1c03f").note') #>> '{}', '[]"', ''), '') AS invoice,
@@ -86,7 +86,7 @@ AS $$
             NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "b6b35579-ee2b-4973-8e0d-ebc05bab0dab").note') #>> '{}', '[]"', ''), '') AS public_notes,
             NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "5366d4d4-8775-4cf4-a00f-77c82f0ca3bf").note') #>> '{}', '[]"', ''), '') AS circulation_notes,
             NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "86e6410d-4c8b-4853-8054-bd5e563e9760").note') #>> '{}', '[]"', ''), '') AS staff_notes,
-            jsonb_extract_path_text(it.jsonb , 'status', 'name') as status
+            jsonb_extract_path_text(it.jsonb , 'status', 'name') AS status
         FROM
             folio_inventory.instance ins
             JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
@@ -116,7 +116,7 @@ AS $$
                 END
                 AND (hr.call_number IS NULL OR hr.call_number between start_cn and end_cn)
     ),
-    loans AS (
+    loans AS MATERIALIZED (
         SELECT
             jsonb_extract_path_text(l.jsonb, 'itemId')::uuid AS item_id,
             jsonb_extract_path_text(l.jsonb, 'loanDate') AS loan_date,
@@ -125,7 +125,7 @@ AS $$
         JOIN folio_circulation.loan l on jsonb_extract_path_text(l.jsonb, 'itemId')::uuid = inv.item_id
         WHERE jsonb_extract_path_text(l.jsonb, 'status', 'name') = 'Open'
     ),
-    stats as (
+    stats AS MATERIALIZED (
         SELECT
             l.item_id AS item_id,
             COUNT(l.id) AS checkouts,
@@ -135,7 +135,7 @@ AS $$
         GROUP BY 
             l.item_id
     ),
-    codes AS (
+    codes AS MATERIALIZED (
         SELECT
             inv.instance_id AS instance_id,
             MAX(sct.name) FILTER (WHERE sctt.name = 'CONTENT') AS content,
@@ -151,37 +151,37 @@ AS $$
             inv.instance_id
     )
     SELECT
-        inventory.barcode as "Barcode",
-        inventory.call_number as "Call Number",
-        inventory.publication_date as "Publication Date",
-        inventory.title as "Title",
-        inventory.author as "Author",
-        inventory.isbn as "ISBN",
-        inventory.publisher as "Publisher",
-        inventory.subjects as "Subjects",
-        inventory.cataloged_date,
-        codes.content as "Content",
-        codes.subtype as "Subtype",
-        inventory.department as "Department",
-        inventory.campus as "Campus",
-        inventory.location as "Location",
-        inventory.temporary_location as "Temporary Location",
-        inventory.material_type as "Material Type",
-        inventory.created_date as "Created Date",
-        codes.fund as "Fund",
-        inventory.inventory_date as "Inventory Date",
-        inventory.po_number as "PO Number",
-        inventory.invoice as "Invoice",
-        inventory.ownership as "Ownership",
-        inventory.price as "Price",
-        inventory.public_notes as "Public Notes",
-        inventory.circulation_notes as "Circulation Notes",
-        inventory.staff_notes as "Staff Notes",
-        COALESCE(stats.checkouts, 0) as "Checkouts",
-        COALESCE(stats.renewals, 0) as "Renewals",
-        inventory.status as "Status",
-        loans.loan_date as "Loan Date",
-        loans.due_date as "Due Date"
+        inventory.barcode AS "Barcode",
+        inventory.call_number AS "Call Number",
+        inventory.publication_date AS "Publication Date",
+        inventory.title AS "Title",
+        inventory.author AS "Author",
+        inventory.isbn AS "ISBN",
+        inventory.publisher AS "Publisher",
+        inventory.subjects AS "Subjects",
+        inventory.cataloged_date as "Cataloged Date",
+        codes.content AS "Content",
+        codes.subtype AS "Subtype",
+        inventory.department AS "Department",
+        inventory.campus AS "Campus",
+        inventory.location AS "Location",
+        inventory.temporary_location AS "Temporary Location",
+        inventory.material_type AS "Material Type",
+        inventory.created_date AS "Created Date",
+        codes.fund AS "Fund",
+        inventory.inventory_date AS "Inventory Date",
+        inventory.po_number AS "PO Number",
+        inventory.invoice AS "Invoice",
+        inventory.ownership AS "Ownership",
+        inventory.price AS "Price",
+        inventory.public_notes AS "Public Notes",
+        inventory.circulation_notes AS "Circulation Notes",
+        inventory.staff_notes AS "Staff Notes",
+        COALESCE(stats.checkouts, 0) AS "Checkouts",
+        COALESCE(stats.renewals, 0) AS "Renewals",
+        inventory.status AS "Status",
+        loans.loan_date AS "Loan Date",
+        loans.due_date AS "Due Date"
     FROM inventory
     LEFT JOIN loans ON loans.item_id = inventory.item_id
     LEFT JOIN stats ON stats.item_id = inventory.item_id

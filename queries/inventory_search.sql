@@ -47,7 +47,7 @@ RETURNS TABLE(
     "Due Date" TEXT
 )
 AS $$
-WITH loans AS MATERIALIZED (
+WITH loans AS (
     SELECT
 	    jsonb_extract_path_text(l.jsonb, 'itemId')::uuid AS item_id,
 	    jsonb_extract_path_text(l.jsonb, 'loanDate') AS loan_date,
@@ -55,7 +55,7 @@ WITH loans AS MATERIALIZED (
 	FROM folio_circulation.loan l
 	WHERE jsonb_extract_path_text(l.jsonb, 'status', 'name') = 'Open'
 ),
-stats AS MATERIALIZED (
+stats AS (
     SELECT
         l.item_id AS item_id,
         COUNT(l.id) AS checkouts,

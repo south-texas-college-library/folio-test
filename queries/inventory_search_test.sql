@@ -23,6 +23,7 @@ RETURNS TABLE(
 	"Publisher" TEXT,
     "Subjects" TEXT,
     "Cataloged Date" TEXT,
+    "Content" TEXT,
     "Subtype" TEXT,
     "Department" TEXT,
     "Campus" TEXT,
@@ -30,6 +31,7 @@ RETURNS TABLE(
     "Temporary Location" TEXT,
     "Material Type" TEXT,
     "Created Date" TEXT,
+    "Fund" TEXT,
     "Inventory Date" TEXT,
     "PO Number" TEXT,
     "Invoice" TEXT,
@@ -38,7 +40,11 @@ RETURNS TABLE(
     "Public Notes" TEXT,
     "Circulation Notes" TEXT,
     "Staff Notes" TEXT,
-    "Status" TEXT
+    "Checkouts" INTEGER,
+    "Renewals" INTEGER,
+    "Status" TEXT,
+    "Loan Date" TEXT,
+    "Due Date" TEXT
 )
 AS $$
     WITH inventory as materialized (      

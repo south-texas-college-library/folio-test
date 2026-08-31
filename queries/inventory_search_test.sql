@@ -54,7 +54,7 @@ AS $$
         jsonb_path_query_first(ins.jsonb, '$.publication[*].publisher') #>> '{}' as "Publisher",
         NULLIF(TRANSLATE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[]"', ''), '') as "Subjects",
         jsonb_extract_path_text(ins.jsonb, 'catalogedDate') as "Cataloged Date",
-        sct.name as 'Subtype',
+        sct.name as "Subtype",
         CASE
             WHEN hl.name ~* 'CLE' THEN 'CLE'
             WHEN hl.name ~* 'Open Lab' THEN 'Open Lab'

@@ -101,8 +101,8 @@ AS $$
         jsonb_path_query_first(ins.jsonb, '$.publication[*].publisher') #>> '{}' as "Publisher",
         NULLIF(TRANSLATE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[]"', ''), '') as "Subjects",
         jsonb_extract_path_text(ins.jsonb, 'catalogedDate') as "Cataloged Date",
-        subtype.name as "Subtype",
         content.name as "Content",
+        subtype.name as "Subtype",
         CASE
             WHEN hl.name ILIKE '%CLE%' THEN 'CLE'
             WHEN hl.name ILIKE '%Open Lab%' THEN 'Open Lab'
@@ -148,7 +148,6 @@ AS $$
         AND (material_type = 'All' OR mt.name = material_type)
         AND (campus = 'All' OR lc.name = campus)
         AND CASE department
-            WHEN 'All' THEN TRUE
             WHEN 'Library' THEN COALESCE(hr.call_number, '') ~ '^[A-Z]{1,3}\s*[0-9]' AND hl.name !~* '(CLE|Open Lab)'
             WHEN 'CLE' THEN COALESCE(hr.call_number, '') !~ '^[A-Z]{1,3}\s*[0-9]' AND hl.name ~* '(CLE)'
             WHEN 'Open Lab' THEN COALESCE(hr.call_number, '') !~ '^[A-Z]{1,3}\s*[0-9]' AND hl.name ~* '(Open Lab)'

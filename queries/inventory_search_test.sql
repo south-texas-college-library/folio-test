@@ -89,47 +89,8 @@ AS $$
             l.item_id
     )
     SELECT
-        jsonb_extract_path_text(it.jsonb, 'barcode') as "Barcode",
-        hr.call_number as "Call Number",
-        COALESCE(
-            GREATEST(jsonb_extract_path_text(ins.jsonb, 'dates', 'date1'), jsonb_extract_path_text(ins.jsonb, 'dates', 'date2')),
-            REGEXP_REPLACE(jsonb_path_query_first(ins.jsonb, '$.publication[*].dateOfPublication') #>> '{}', '[^0-9?,\s-]', '', 'g')
-        ) as "Publication Date",
-        jsonb_extract_path_text(ins.jsonb, 'title') as "Title",
-        jsonb_path_query_first(ins.jsonb, '$.contributors[*].name') #>> '{}' as "Author",	
-        NULLIF(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.identifiers[*].value') #>> '{}', '\[|\]|"| :.*?\$\d+\.\d{2}', '', 'g'), '') as "ISBN",
-        jsonb_path_query_first(ins.jsonb, '$.publication[*].publisher') #>> '{}' as "Publisher",
-        NULLIF(TRANSLATE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[]"', ''), '') as "Subjects",
-        jsonb_extract_path_text(ins.jsonb, 'catalogedDate') as "Cataloged Date",
-        content.name as "Content",
-        subtype.name as "Subtype",
-        CASE
-            WHEN hl.name ILIKE '%CLE%' THEN 'CLE'
-            WHEN hl.name ILIKE '%Open Lab%' THEN 'Open Lab'
-            ELSE 'Library'
-        END AS "Department",
-        lc.name as "Campus",
-        hl.name as "Location",
-        tl.name as "Temporary Location",
-        mt.name as "Material Type",
-        COALESCE(
-            TO_DATE(split_part(jsonb_path_query_first(it.jsonb, '$.administrativeNotes[*]') #>> '{}', ': ', 2), 'YYYYMMDD')::text,
-            jsonb_extract_path_text(it.jsonb, 'metadata', 'createdDate')::date::text
-        ) as "Created Date",
-        fund.name as "Fund",
-        NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "e1f34ba3-6d37-462e-878c-17f922b13d93").note') #>> '{}', '[]"', ''), '') AS "Inventory Date",
-        NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "5ec4ca65-aacc-4f16-aa9d-395efd89f850").note') #>> '{}', '[]"', ''), '') AS "PO Number",
-        NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "8f99bd3a-706c-45d2-89d8-8eca7fa1c03f").note') #>> '{}', '[]"', ''), '') AS "Invoice",
-        NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "34207e4e-5cd7-4eab-801b-b0326cd5c66a").note') #>> '{}', '[]"', ''), '') AS "Ownership",
-        NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "1fceb11c-7a89-49d6-8ef0-2a42c58556a2").note') #>> '{}', '[]"', ''), '') AS "Price",
-        NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "b6b35579-ee2b-4973-8e0d-ebc05bab0dab").note') #>> '{}', '[]"', ''), '') AS "Public Notes",
-        NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "5366d4d4-8775-4cf4-a00f-77c82f0ca3bf").note') #>> '{}', '[]"', ''), '') AS "Circulation Notes",
-        NULLIF(TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "86e6410d-4c8b-4853-8054-bd5e563e9760").note') #>> '{}', '[]"', ''), '') AS "Staff Notes",
-        COALESCE(stats.checkouts, 0) as "Checkouts",
-        COALESCE(stats.renewals, 0) as "Renewals",
-        jsonb_extract_path_text(it.jsonb, 'status', 'name') as "Status",
-        loans.loan_date as "Loan Date",
-        loans.due_date as "Due Date"
+        it.id as "Item ID"
+        jsonb_extract_path_text(it.jsonb, 'barcode') as "Barcode"
     FROM folio_inventory.instance ins
     JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
     JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
@@ -165,7 +126,6 @@ AS $$
         AND (sub_type = 'All' OR subtype.name = sub_type)
     ORDER BY
         hr.call_number, jsonb_extract_path_text(it.jsonb, 'barcode')
-    LIMIT 100000
 $$
 LANGUAGE SQL
 STABLE

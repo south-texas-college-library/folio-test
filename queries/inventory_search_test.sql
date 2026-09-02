@@ -167,7 +167,7 @@ AS $$
         AND (sub_type = 'All' OR subtype.name = sub_type)
     ORDER BY
         hr.call_number, jsonb_extract_path_text(it.jsonb, 'barcode')
-    LIMIT 9999
+    LIMIT 10001
 $$
 LANGUAGE SQL
 STABLE

@@ -5,12 +5,10 @@ DROP FUNCTION IF EXISTS holdings;
 CREATE FUNCTION holdings()
 
 RETURNS TABLE(
-    "Instance ID" TEXT,
     "HR ID" TEXT
 )
 AS $$
     select 
-        ins.id,
         hr.id
     from folio_inventory.instance__t ins
     join folio_inventory.holdings_record__t hr on hr.instance_id = ins.id

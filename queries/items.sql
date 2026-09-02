@@ -31,7 +31,7 @@ RETURNS TABLE(
     "Permanent Location ID" TEXT,
     "Temporary Location ID" TEXT,
     "Effective Location ID" TEXT,
-    "Volume" TEXT,
+    "Volume" TEXT
 )
 AS $$
     select

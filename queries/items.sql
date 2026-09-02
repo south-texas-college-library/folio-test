@@ -5,17 +5,14 @@ DROP FUNCTION IF EXISTS items;
 CREATE FUNCTION items()
 
 RETURNS TABLE(
-    "Instance ID" TEXT,
     "Title" TEXT,
-    "HR ID" TEXT,
     "Call Number" TEXT,
-    "Item ID" TEXT,
     "Item Barcode" TEXT
 )
 AS $$
     select
         ins.id,
-        ins.TITLE,
+        ins.title,
         hr.id,
         hr.call_number,
         it.id,

@@ -11,11 +11,8 @@ RETURNS TABLE(
 )
 AS $$
     select
-        ins.id,
         ins.title,
-        hr.id,
         hr.call_number,
-        it.id,
         it.barcode
     from folio_inventory.instance__t ins
     join folio_inventory.holdings_record__t hr on hr.instance_id = ins.id

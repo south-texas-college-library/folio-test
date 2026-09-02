@@ -1,0 +1,6 @@
+{
+  "displayName": "Collection - Items",
+  "description": "This report lists the count of item records.",
+  "instructions": "Run the report.",
+  "parameters": []
+}

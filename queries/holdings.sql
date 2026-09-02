@@ -5,23 +5,11 @@ DROP FUNCTION IF EXISTS holdings;
 CREATE FUNCTION holdings()
 
 RETURNS TABLE(
-    "Instance ID" TEXT,
-    "Title" TEXT,
-    "Instance Discovery Suppress" TEXT,
-    "Staff Suppress" TEXT,
-    "Deleted" TEXT,
-    "HR ID" TEXT,
-    "Call Number" TEXT
+    "HR ID" TEXT
 )
 AS $$
     select 
-        LEFT(ins.id::text, 1),
-        LEFT(ins.title, 1),
-        LEFT(ins.discovery_suppress::text, 1),
-        LEFT(ins.staff_suppress::text, 1),
-        LEFT(ins.deleted::text, 1),
-        LEFT(hr.id::text, 1),
-        LEFT(hr.call_number, 1)
+        hr.id
     from folio_inventory.instance__t ins
     join folio_inventory.holdings_record__t hr on hr.instance_id = ins.id
 $$

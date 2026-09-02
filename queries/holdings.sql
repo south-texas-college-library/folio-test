@@ -7,23 +7,15 @@ CREATE FUNCTION holdings()
 RETURNS TABLE(
     "Instance ID" TEXT,
     "Title" TEXT,
-    "Instance Discovery Suppress" TEXT,
-    "Staff Suppress" TEXT,
-    "Deleted" TEXT,
     "HR ID" TEXT,
-    "Call Number" TEXT,
-    "Copy Number" TEXT
+    "Call Number" TEXT
 )
 AS $$
     select 
         ins.id,
         ins.TITLE,
-        ins.DISCOVERY_SUPPRESS,
-        ins.STAFF_SUPPRESS,
-        ins.DELETED,
         hr.id,
-        hr.call_number,
-        hr.COPY_NUMBER
+        hr.call_number
     from folio_inventory.instance__t ins
     join folio_inventory.holdings_record__t hr on hr.instance_id = ins.id
 $$

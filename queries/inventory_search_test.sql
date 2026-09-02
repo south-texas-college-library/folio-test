@@ -15,36 +15,7 @@ CREATE FUNCTION inventory_search_test(
 )
 RETURNS TABLE(
     "Barcode" TEXT,
-    "Call Number" TEXT,
-    "Publication Date" TEXT,
-    "Title" TEXT,
-    "Author" TEXT,
-    "ISBN" TEXT,
-	"Publisher" TEXT,
-    "Subjects" TEXT,
-    "Cataloged Date" TEXT,
-    "Content" TEXT,
-    "Subtype" TEXT,
-    "Department" TEXT,
-    "Campus" TEXT,
-    "Location" TEXT,
-    "Temporary Location" TEXT,
-    "Material Type" TEXT,
-    "Created Date" TEXT,
-    "Fund" TEXT,
-    "Inventory Date" TEXT,
-    "PO Number" TEXT,
-    "Invoice" TEXT,
-    "Ownership" TEXT,
-    "Price" TEXT,
-    "Public Notes" TEXT,
-    "Circulation Notes" TEXT,
-    "Staff Notes" TEXT,
-    "Checkouts" INTEGER,
-    "Renewals" INTEGER,
-    "Status" TEXT,
-    "Loan Date" TEXT,
-    "Due Date" TEXT
+    "Call Number" TEXT
 )
 AS $$
     WITH content AS (

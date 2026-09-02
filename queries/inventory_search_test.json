@@ -1,5 +1,5 @@
 {
-  "displayName": "Collection - Inventory Search",
+  "displayName": "Collection - Inventory Search (Test)",
   "description": "Search inventory records using a combination of call number range, title, subject, material type, subtype, campus, and department filters. Results include items that match the selected criteria.",
   "instructions": "Enter any combination of search criteria to locate inventory items. Optional filters: Call Number Range (Start/End), Title and Search Type, Subjects (use OR between terms; use - to exclude a term), Material Type, Subtype, Campus, Department. Leave a field blank or select All to include all values for that filter.",
   "parameters": [

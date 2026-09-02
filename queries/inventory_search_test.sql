@@ -60,7 +60,7 @@ AS $$
             l.item_id
     )
     SELECT
-        it.id as "Item ID"
+        it.id as "Item ID",
         jsonb_extract_path_text(it.jsonb, 'barcode') as "Barcode"
     FROM folio_inventory.instance ins
     JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id

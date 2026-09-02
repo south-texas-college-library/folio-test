@@ -14,8 +14,15 @@ CREATE FUNCTION inventory_search_test(
     department TEXT DEFAULT NULL
 )
 RETURNS TABLE(
+    "Item ID" TEXT,
     "Barcode" TEXT,
-    "Call Number" TEXT
+    "Call Number" TEXT,
+    "Publication Date" TEXT,
+    "Title" TEXT,
+    "Author" TEXT,
+    "ISBN" TEXT,
+	"Publisher" TEXT,
+    "Subjects" TEXT
 )
 AS $$
     WITH content AS (
@@ -60,8 +67,18 @@ AS $$
             l.item_id
     )
     SELECT
-        it.id as "Item ID",
-        jsonb_extract_path_text(it.jsonb, 'barcode') as "Barcode"
+        it.id as "Item ID"
+        jsonb_extract_path_text(it.jsonb, 'barcode') as "Barcode",
+        hr.call_number as "Call Number",
+        COALESCE(
+            GREATEST(jsonb_extract_path_text(ins.jsonb, 'dates', 'date1'), jsonb_extract_path_text(ins.jsonb, 'dates', 'date2')),
+            REGEXP_REPLACE(jsonb_path_query_first(ins.jsonb, '$.publication[*].dateOfPublication') #>> '{}', '[^0-9?,\s-]', '', 'g')
+        ) as "Publication Date",
+        jsonb_extract_path_text(ins.jsonb, 'title') as "Title",
+        jsonb_path_query_first(ins.jsonb, '$.contributors[*].name') #>> '{}' as "Author",	
+        NULLIF(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.identifiers[*].value') #>> '{}', '\[|\]|"| :.*?\$\d+\.\d{2}', '', 'g'), '') as "ISBN",
+        jsonb_path_query_first(ins.jsonb, '$.publication[*].publisher') #>> '{}' as "Publisher",
+        NULLIF(TRANSLATE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[]"', ''), '') as "Subjects"
     FROM folio_inventory.instance ins
     JOIN folio_inventory.holdings_record__t hr ON hr.instance_id = ins.id
     JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id

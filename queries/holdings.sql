@@ -5,7 +5,7 @@ DROP FUNCTION IF EXISTS holdings;
 CREATE FUNCTION holdings()
 
 RETURNS TABLE(
-    "COUNT" INTEGER,
+    "COUNT" INTEGER
 )
 AS $$
     select 

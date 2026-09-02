@@ -5,7 +5,7 @@ DROP FUNCTION IF EXISTS items;
 CREATE FUNCTION items()
 
 RETURNS TABLE(
-    "COUNT" INTEGER,
+    "COUNT" INTEGER
 )
 AS $$
     select 

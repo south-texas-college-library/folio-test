@@ -15,13 +15,13 @@ RETURNS TABLE(
 )
 AS $$
     select 
-        ins.id,
-        ins.title,
-        ins.discovery_suppress,
-        ins.staff_suppress,
-        ins.deleted,
-        hr.id,
-        hr.call_number
+        LEFT(ins.id, 1),
+        LEFT(ins.title, 1),
+        LEFT(ins.discovery_suppress, 1),
+        LEFT(ins.staff_suppress, 1),
+        LEFT(ins.deleted, 1),
+        LEFT(hr.id, 1),
+        LEFT(hr.call_number, 1)
     from folio_inventory.instance__t ins
     join folio_inventory.holdings_record__t hr on hr.instance_id = ins.id
 $$

@@ -16,9 +16,9 @@ RETURNS TABLE(
     "HR ID" TEXT,
     "Call Number" TEXT,
     "Discovery Suppress" TEXT,
-    "Permanent Location" TEXT,
-    "Temporary Location" TEXT,
-    "Effective Location" TEXT,
+    "Holdings Permanent Location" TEXT,
+    "Holdings Temporary Location" TEXT,
+    "Holdings Effective Location" TEXT,
     "Copy Number" TEXT
 )
 AS $$

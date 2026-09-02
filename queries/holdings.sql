@@ -7,7 +7,7 @@ CREATE FUNCTION holdings()
 RETURNS TABLE(
     "Instance ID" TEXT,
     "Title" TEXT,
-    "Discovery Suppress" TEXT,
+    "Instance Discovery Suppress" TEXT,
     "Staff Suppress" TEXT,
     "Deleted" TEXT,
     "Index Title" TEXT,
@@ -15,7 +15,7 @@ RETURNS TABLE(
     "Status ID" TEXT,
     "HR ID" TEXT,
     "Call Number" TEXT,
-    "Discovery Suppress" TEXT,
+    "Holdings Discovery Suppress" TEXT,
     "Holdings Permanent Location" TEXT,
     "Holdings Temporary Location" TEXT,
     "Holdings Effective Location" TEXT,

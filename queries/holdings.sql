@@ -10,9 +10,6 @@ RETURNS TABLE(
     "Instance Discovery Suppress" TEXT,
     "Staff Suppress" TEXT,
     "Deleted" TEXT,
-    "Index Title" TEXT,
-    "Cataloged Date" TEXT,
-    "Status ID" TEXT,
     "HR ID" TEXT,
     "Call Number" TEXT,
     "Copy Number" TEXT
@@ -24,9 +21,6 @@ AS $$
         ins.DISCOVERY_SUPPRESS,
         ins.STAFF_SUPPRESS,
         ins.DELETED,
-        ins.INDEX_TITLE,
-        ins.CATALOGED_DATE,
-        ins.STATUS_ID,
         hr.id,
         hr.call_number,
         hr.COPY_NUMBER

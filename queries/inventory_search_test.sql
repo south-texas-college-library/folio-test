@@ -15,7 +15,6 @@ CREATE FUNCTION inventory_search_test(
 )
 RETURNS TABLE(
     "Item ID" TEXT,
-    "Barcode" TEXT,
     "Publication Date" TEXT
 )
 AS $$
@@ -62,7 +61,6 @@ AS $$
     )
     SELECT
         it.id as "Item ID",
-        jsonb_extract_path_text(it.jsonb, 'barcode') as "Barcode",
         COALESCE(
             GREATEST(jsonb_extract_path_text(ins.jsonb, 'dates', 'date1'), jsonb_extract_path_text(ins.jsonb, 'dates', 'date2')),
             REGEXP_REPLACE(jsonb_path_query_first(ins.jsonb, '$.publication[*].dateOfPublication') #>> '{}', '[^0-9?,\s-]', '', 'g')

@@ -71,7 +71,7 @@ AS $$
         JOIN folio_inventory.statistical_code__t sct ON sct.id = (jsonb_path_query_first(it.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
         JOIN folio_inventory.statistical_code_type__t sctt ON sctt.id = sct.statistical_code_type_id and sctt.name = 'FUND'
     ),
-    loans AS materialized (
+    loans AS (
         SELECT
             jsonb_extract_path_text(l.jsonb, 'itemId')::uuid AS item_id,
             jsonb_extract_path_text(l.jsonb, 'loanDate') AS loan_date,
@@ -79,7 +79,7 @@ AS $$
         FROM folio_circulation.loan l
         WHERE jsonb_extract_path_text(l.jsonb, 'status', 'name') = 'Open'
     ),
-    stats AS materialized (
+    stats AS (
         SELECT
             l.item_id AS item_id,
             COUNT(l.id) AS checkouts,

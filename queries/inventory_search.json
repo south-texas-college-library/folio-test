@@ -28,8 +28,8 @@
       "required": false
     },
     {
-      "name": "search_type",
-      "displayName": "Search Type",
+      "name": "title_search_type",
+      "displayName": "Title Search Type",
       "type": "text",
       "required": false,
       "default": "Contains All",
@@ -97,13 +97,13 @@
       "default": "All",
       "controlled.options": [
         "All",
-        "Mid-Valley",
         "HSP",
-        "Online",
+        "Mid-Valley",
         "Pecan",
         "RCPSE",
         "Starr County",
-        "Technology"
+        "Technology",
+        "Online"
       ]
     },
     {

@@ -7,7 +7,7 @@ CREATE FUNCTION inventory_search(
     end_cn TEXT DEFAULT 'ZZZZZZZZ',
     subjects TEXT DEFAULT NULL,
     title TEXT DEFAULT NULL,
-    search_type TEXT DEFAULT NULL,
+    title_search_type TEXT DEFAULT NULL,
     material_type TEXT DEFAULT NULL,
     sub_type TEXT DEFAULT NULL,
     campus TEXT DEFAULT NULL,
@@ -153,7 +153,7 @@ AS $$
             WHEN 'Open Lab' THEN (sub_type != 'All' OR COALESCE(hr.call_number, '') !~ '^[A-Z]{1,3}\s*[0-9]') AND hl.name ~* '(Open Lab)'
             ELSE TRUE
         END
-        AND CASE search_type
+        AND CASE title_search_type
             WHEN 'Contains All' THEN (title IS NULL OR TO_TSVECTOR('english', jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('english', title))
             WHEN 'Exact Match' THEN (title IS NULL OR TO_TSVECTOR(jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('"' || title || '"'))
             WHEN 'Contains Any' THEN (title IS NULL OR TO_TSVECTOR('english', jsonb_extract_path_text(ins.jsonb, 'title')) @@ WEBSEARCH_TO_TSQUERY('english', replace(title, ' ', ' OR ' )))

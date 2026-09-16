@@ -36,6 +36,7 @@
       "controlled.options": [
         "Contains All",
         "Exact Match",
+        "Exact Match Test",
         "Contains Any",
         "Starts With",
         "Ends With"

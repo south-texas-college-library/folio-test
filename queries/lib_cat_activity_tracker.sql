@@ -190,14 +190,8 @@ field_changes AS (
     FROM audit_data ad
     CROSS JOIN report_dates d
     CROSS JOIN LATERAL jsonb_array_elements(
-        COALESCE(
-            ad.diff::jsonb -> 'fieldChanges',
-            '[]'::jsonb
-        )
-    ) AS fc
-    WHERE ad.event_date::date
-              BETWEEN d.start_date
-                  AND d.end_date
+        COALESCE(ad.diff::jsonb -> 'fieldChanges', '[]'::jsonb)) AS fc
+    WHERE ad.event_date::date BETWEEN d.start_date AND d.end_date
 ),
 marc_change_counts AS (
     SELECT
@@ -211,8 +205,7 @@ marc_change_counts AS (
         ON c.username = audit_user.username
     WHERE fc.change_type IS NOT NULL
     GROUP BY
-        COALESCE(c.cataloger, 'husker'),
-        fc.change_type
+        COALESCE(c.cataloger, 'husker'), fc.change_type
 ),
 marc_summary AS (
     SELECT
@@ -237,10 +230,7 @@ SELECT
     COALESCE(ms.marc_deleted, 0)  AS "MARC Deleted",
     COALESCE(ms.marc_modified, 0) AS "MARC Modified",
     COALESCE(ms.marc_updated, 0)  AS "MARC Updated"/*,
-    COALESCE(
-        ms.total_marc_field_changes,
-        0
-    ) AS "Total MARC Field Changes"*/
+    COALESCE(ms.total_marc_field_changes, 0) AS "Total MARC Field Changes"*/
 FROM catalogers c
 LEFT JOIN instance_added ia
     ON ia.cataloger = c.cataloger

@@ -1,0 +1,19 @@
+{
+    "displayName": "LIB - Cataloger Activity Report",
+    "description": "Displays FOLIO activity per cataloger for a given date range.",
+    "instructions": "Input the date range to run the report.",
+    "parameters": [
+        {
+            "name": "start_date",
+            "displayName": "Start Date",
+            "type": "date",
+            "required": true
+        },
+        {
+            "name": "end_date",
+            "displayName": "End Date",
+            "type": "date",
+            "required": false
+        }
+    ]
+}

@@ -19,7 +19,7 @@ RETURNS TABLE(
     marc_deleted numeric
 )
 AS $$
-catalogers (username, cataloger) AS (
+WITH catalogers (username, cataloger) AS (
     VALUES
         ('ahern267', 'boomer'),
         ('treyna1',  'helo'),

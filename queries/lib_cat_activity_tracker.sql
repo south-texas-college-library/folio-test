@@ -220,7 +220,7 @@ marc_summary AS (
 )
 SELECT
     c.cataloger,
-    --c.username,
+    c.username,
     COALESCE(ia.inst_added, 0)     AS "Instance Added",
     COALESCE(iu.inst_updated, 0)   AS "Instance Updated",
     COALESCE(ita.item_added, 0)    AS "Item Added",

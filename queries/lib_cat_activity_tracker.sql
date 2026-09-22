@@ -30,81 +30,35 @@ catalogers (username, cataloger) AS (
 instance_added AS (
     SELECT
         COALESCE(c.cataloger, 'husker') AS cataloger,
-        COUNT(
-            jsonb_extract_path_text(i.jsonb, 'hrid')
-        ) AS inst_added
+        COUNT(jsonb_extract_path_text(i.jsonb, 'hrid')) AS inst_added
     FROM folio_inventory.instance__ i
     LEFT JOIN folio_permissions.permissions_users pu
-        ON jsonb_path_query_first(
-               pu.jsonb,
-               '$.permissions[*]'
-           ) #>> '{}' = '07e78044-2804-496e-a3e7-074f557dd361'
-       AND jsonb_extract_path_text(
-               pu.jsonb,
-               'userId'
-           )::uuid =
-           jsonb_extract_path_text(
-               i.jsonb,
-               'metadata',
-               'createdByUserId'
-           )::uuid
+        ON jsonb_path_query_first(pu.jsonb,'$.permissions[*]') #>> '{}' = '07e78044-2804-496e-a3e7-074f557dd361'
+       AND jsonb_extract_path_text(pu.jsonb, 'userId')::uuid = jsonb_extract_path_text(i.jsonb, 'metadata', 'createdByUserId')::uuid
     LEFT JOIN folio_users.users__t created_by
-        ON created_by.id =
-           jsonb_extract_path_text(
-               pu.jsonb,
-               'userId'
-           )::uuid
+        ON created_by.id = jsonb_extract_path_text(pu.jsonb, 'userId')::uuid
     LEFT JOIN catalogers c
         ON c.username = created_by.username
     CROSS JOIN report_dates d
-    WHERE jsonb_extract_path_text(i.jsonb, 'hrid')
-              !~ '^(SE|L|RSV|T)'
-      AND jsonb_extract_path_text(
-              i.jsonb,
-              'metadata',
-              'createdDate'
-          )::date
-          BETWEEN d.start_date
-              AND d.end_date
+    WHERE jsonb_extract_path_text(i.jsonb, 'hrid') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'createdDate')::date
+          BETWEEN d.start_date AND d.end_date
     GROUP BY COALESCE(c.cataloger, 'husker')
 ),
 instance_updated AS (
     SELECT
         COALESCE(c.cataloger, 'husker') AS cataloger,
-        COUNT(
-            jsonb_extract_path_text(i.jsonb, 'hrid')
-        ) AS inst_updated
+        COUNT(jsonb_extract_path_text(i.jsonb, 'hrid')) AS inst_updated
     FROM folio_inventory.instance__ i
     LEFT JOIN folio_permissions.permissions_users pu
-        ON jsonb_path_query_first(
-               pu.jsonb,
-               '$.permissions[*]'
-           ) #>> '{}' = '07e78044-2804-496e-a3e7-074f557dd361'
-       AND jsonb_extract_path_text(
-               pu.jsonb,
-               'userId'
-           )::uuid =
-           jsonb_extract_path_text(
-               i.jsonb,
-               'metadata',
-               'updatedByUserId'
-           )::uuid
+        ON jsonb_path_query_first(pu.jsonb, '$.permissions[*]') #>> '{}' = '07e78044-2804-496e-a3e7-074f557dd361'
+       AND jsonb_extract_path_text(pu.jsonb, 'userId')::uuid =
+           jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedByUserId')::uuid
     LEFT JOIN folio_users.users__t updated_by
-        ON updated_by.id =
-           jsonb_extract_path_text(
-               pu.jsonb,
-               'userId'
-           )::uuid
+        ON updated_by.id = jsonb_extract_path_text(pu.jsonb, 'userId')::uuid
     LEFT JOIN catalogers c
         ON c.username = updated_by.username
     CROSS JOIN report_dates d
-    WHERE jsonb_extract_path_text(i.jsonb, 'hrid')
-              !~ '^(SE|L|RSV|T)'
-      AND jsonb_extract_path_text(
-              i.jsonb,
-              'metadata',
-              'updatedDate'
-          )::date
+    WHERE jsonb_extract_path_text(i.jsonb, 'hrid') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedDate')::date
           BETWEEN d.start_date
               AND d.end_date
     GROUP BY COALESCE(c.cataloger, 'husker')
@@ -112,40 +66,18 @@ instance_updated AS (
 item_added AS (
     SELECT
         COALESCE(c.cataloger, 'husker') AS cataloger,
-        COUNT(
-            jsonb_extract_path_text(i.jsonb, 'barcode')
-        ) AS item_added
+        COUNT(jsonb_extract_path_text(i.jsonb, 'barcode')) AS item_added
     FROM folio_inventory.item__ i
     LEFT JOIN folio_permissions.permissions_users pu
-        ON jsonb_path_query_first(
-               pu.jsonb,
-               '$.permissions[*]'
-           ) #>> '{}' = '07e78044-2804-496e-a3e7-074f557dd361'
-       AND jsonb_extract_path_text(
-               pu.jsonb,
-               'userId'
-           )::uuid =
-           jsonb_extract_path_text(
-               i.jsonb,
-               'metadata',
-               'createdByUserId'
-           )::uuid
+        ON jsonb_path_query_first(pu.jsonb, '$.permissions[*]') #>> '{}' = '07e78044-2804-496e-a3e7-074f557dd361' 
+        AND jsonb_extract_path_text(pu.jsonb,'userId')::uuid =
+           jsonb_extract_path_text(i.jsonb,'metadata', 'createdByUserId')::uuid
     LEFT JOIN folio_users.users__t created_by
-        ON created_by.id =
-           jsonb_extract_path_text(
-               pu.jsonb,
-               'userId'
-           )::uuid
+        ON created_by.id = jsonb_extract_path_text(pu.jsonb, 'userId')::uuid
     LEFT JOIN catalogers c
         ON c.username = created_by.username
     CROSS JOIN report_dates d
-    WHERE jsonb_extract_path_text(i.jsonb, 'barcode')
-              !~ '^(SE|L|RSV|T)'
-      AND jsonb_extract_path_text(
-              i.jsonb,
-              'metadata',
-              'createdDate'
-          )::date
+    WHERE jsonb_extract_path_text(i.jsonb, 'barcode') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'createdDate')::date
           BETWEEN d.start_date
               AND d.end_date
     GROUP BY COALESCE(c.cataloger, 'husker')
@@ -153,40 +85,17 @@ item_added AS (
 item_updated AS (
     SELECT
         COALESCE(c.cataloger, 'husker') AS cataloger,
-        COUNT(
-            jsonb_extract_path_text(i.jsonb, 'barcode')
-        ) AS item_updated
+        COUNT(jsonb_extract_path_text(i.jsonb, 'barcode')) AS item_updated
     FROM folio_inventory.item__ i
     LEFT JOIN folio_permissions.permissions_users pu
-        ON jsonb_path_query_first(
-               pu.jsonb,
-               '$.permissions[*]'
-           ) #>> '{}' = '07e78044-2804-496e-a3e7-074f557dd361'
-       AND jsonb_extract_path_text(
-               pu.jsonb,
-               'userId'
-           )::uuid =
-           jsonb_extract_path_text(
-               i.jsonb,
-               'metadata',
-               'updatedByUserId'
-           )::uuid
+        ON jsonb_path_query_first(pu.jsonb,'$.permissions[*]') #>> '{}' = '07e78044-2804-496e-a3e7-074f557dd361'
+       AND jsonb_extract_path_text(pu.jsonb, 'userId')::uuid = jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedByUserId')::uuid
     LEFT JOIN folio_users.users__t updated_by
-        ON updated_by.id =
-           jsonb_extract_path_text(
-               pu.jsonb,
-               'userId'
-           )::uuid
+        ON updated_by.id = jsonb_extract_path_text(pu.jsonb, 'userId')::uuid
     LEFT JOIN catalogers c
         ON c.username = updated_by.username
     CROSS JOIN report_dates d
-    WHERE jsonb_extract_path_text(i.jsonb, 'barcode')
-              !~ '^(SE|L|RSV|T)'
-      AND jsonb_extract_path_text(
-              i.jsonb,
-              'metadata',
-              'updatedDate'
-          )::date
+    WHERE jsonb_extract_path_text(i.jsonb, 'barcode') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedDate')::date
           BETWEEN d.start_date
               AND d.end_date
     GROUP BY COALESCE(c.cataloger, 'husker')
@@ -194,30 +103,14 @@ item_updated AS (
 item_withdrawn AS (
     SELECT
         COALESCE(c.cataloger, 'husker') AS cataloger,
-        COUNT(
-            jsonb_extract_path_text(i.jsonb, 'barcode')
-        ) AS item_withdrawn
+        COUNT(jsonb_extract_path_text(i.jsonb, 'barcode')) AS item_withdrawn
     FROM folio_inventory.item__ i
     LEFT JOIN folio_users.users__t updated_by
-        ON updated_by.id =
-           jsonb_extract_path_text(
-               i.jsonb,
-               'metadata',
-               'updatedByUserId'
-           )::uuid
+        ON updated_by.id = jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedByUserId')::uuid
     LEFT JOIN catalogers c
         ON c.username = updated_by.username
     CROSS JOIN report_dates d
-    WHERE jsonb_extract_path_text(
-              i.jsonb,
-              'status',
-              'name'
-          ) = 'Withdrawn'
-      AND jsonb_extract_path_text(
-              i.jsonb,
-              'status',
-              'date'
-          )::date
+    WHERE jsonb_extract_path_text(i.jsonb, 'status', 'name') = 'Withdrawn' AND jsonb_extract_path_text(i.jsonb, 'status', 'date' )::date
           BETWEEN d.start_date
               AND d.end_date
     GROUP BY COALESCE(c.cataloger, 'husker')
@@ -324,30 +217,10 @@ marc_change_counts AS (
 marc_summary AS (
     SELECT
         cataloger,
-        COALESCE(
-            SUM(change_count) FILTER (
-                WHERE change_type = 'ADDED'
-            ),
-            0
-        ) AS marc_added,
-        COALESCE(
-            SUM(change_count) FILTER (
-                WHERE change_type = 'DELETED'
-            ),
-            0
-        ) AS marc_deleted,
-        COALESCE(
-            SUM(change_count) FILTER (
-                WHERE change_type = 'MODIFIED'
-            ),
-            0
-        ) AS marc_modified,
-        COALESCE(
-            SUM(change_count) FILTER (
-                WHERE change_type = 'UPDATED'
-            ),
-            0
-        ) AS marc_updated,
+        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'ADDED'), 0) AS marc_added,
+        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'DELETED'), 0) AS marc_deleted,
+        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'MODIFIED'), 0) AS marc_modified,
+        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'UPDATED'), 0) AS marc_updated,
         SUM(change_count) AS total_marc_field_changes
     FROM marc_change_counts
     GROUP BY cataloger

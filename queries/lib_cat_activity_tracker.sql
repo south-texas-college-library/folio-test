@@ -33,7 +33,7 @@ instance_added AS (
         COUNT(
             jsonb_extract_path_text(i.jsonb, 'hrid')
         ) AS inst_added
-    FROM folio_inventory.instance i
+    FROM folio_inventory.instance__ i
     LEFT JOIN folio_permissions.permissions_users pu
         ON jsonb_path_query_first(
                pu.jsonb,
@@ -74,7 +74,7 @@ instance_updated AS (
         COUNT(
             jsonb_extract_path_text(i.jsonb, 'hrid')
         ) AS inst_updated
-    FROM folio_inventory.instance i
+    FROM folio_inventory.instance__ i
     LEFT JOIN folio_permissions.permissions_users pu
         ON jsonb_path_query_first(
                pu.jsonb,
@@ -115,7 +115,7 @@ item_added AS (
         COUNT(
             jsonb_extract_path_text(i.jsonb, 'barcode')
         ) AS item_added
-    FROM folio_inventory.item i
+    FROM folio_inventory.item__ i
     LEFT JOIN folio_permissions.permissions_users pu
         ON jsonb_path_query_first(
                pu.jsonb,
@@ -156,7 +156,7 @@ item_updated AS (
         COUNT(
             jsonb_extract_path_text(i.jsonb, 'barcode')
         ) AS item_updated
-    FROM folio_inventory.item i
+    FROM folio_inventory.item__ i
     LEFT JOIN folio_permissions.permissions_users pu
         ON jsonb_path_query_first(
                pu.jsonb,
@@ -197,7 +197,7 @@ item_withdrawn AS (
         COUNT(
             jsonb_extract_path_text(i.jsonb, 'barcode')
         ) AS item_withdrawn
-    FROM folio_inventory.item i
+    FROM folio_inventory.item__ i
     LEFT JOIN folio_users.users__t updated_by
         ON updated_by.id =
            jsonb_extract_path_text(

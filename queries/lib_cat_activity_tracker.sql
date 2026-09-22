@@ -39,7 +39,7 @@ instance_added AS (
         ON created_by.id = jsonb_extract_path_text(pu.jsonb, 'userId')::uuid
     LEFT JOIN catalogers c
         ON c.username = created_by.username
-    CROSS JOIN activity_report(start_date, end_date) d
+    CROSS JOIN lib_cat_activity_tracker(start_date, end_date) d
     WHERE jsonb_extract_path_text(i.jsonb, 'hrid') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'createdDate')::date
           BETWEEN d.start_date AND d.end_date
     GROUP BY COALESCE(c.cataloger, 'husker')
@@ -57,7 +57,7 @@ instance_updated AS (
         ON updated_by.id = jsonb_extract_path_text(pu.jsonb, 'userId')::uuid
     LEFT JOIN catalogers c
         ON c.username = updated_by.username
-    CROSS JOIN activity_report(start_date, end_date) d
+    CROSS JOIN lib_cat_activity_tracker(start_date, end_date) d
     WHERE jsonb_extract_path_text(i.jsonb, 'hrid') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedDate')::date
           BETWEEN d.start_date
               AND d.end_date
@@ -76,7 +76,7 @@ item_added AS (
         ON created_by.id = jsonb_extract_path_text(pu.jsonb, 'userId')::uuid
     LEFT JOIN catalogers c
         ON c.username = created_by.username
-    CROSS JOIN activity_report(start_date, end_date) d
+    CROSS JOIN lib_cat_activity_tracker(start_date, end_date) d
     WHERE jsonb_extract_path_text(i.jsonb, 'barcode') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'createdDate')::date
           BETWEEN d.start_date
               AND d.end_date
@@ -94,7 +94,7 @@ item_updated AS (
         ON updated_by.id = jsonb_extract_path_text(pu.jsonb, 'userId')::uuid
     LEFT JOIN catalogers c
         ON c.username = updated_by.username
-    CROSS JOIN activity_report(start_date, end_date) d
+    CROSS JOIN lib_cat_activity_tracker(start_date, end_date) d
     WHERE jsonb_extract_path_text(i.jsonb, 'barcode') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedDate')::date
           BETWEEN d.start_date
               AND d.end_date
@@ -109,7 +109,7 @@ item_withdrawn AS (
         ON updated_by.id = jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedByUserId')::uuid
     LEFT JOIN catalogers c
         ON c.username = updated_by.username
-    CROSS JOIN activity_report(start_date, end_date) d
+    CROSS JOIN lib_cat_activity_tracker(start_date, end_date) d
     WHERE jsonb_extract_path_text(i.jsonb, 'status', 'name') = 'Withdrawn' AND jsonb_extract_path_text(i.jsonb, 'status', 'date' )::date
           BETWEEN d.start_date
               AND d.end_date
@@ -188,7 +188,7 @@ field_changes AS (
         fc ->> 'fullPath'   AS full_path,
         fc ->> 'changeType' AS change_type
     FROM audit_data ad
-    CROSS JOIN activity_report(start_date, end_date) d
+    CROSS JOIN lib_cat_activity_tracker(start_date, end_date) d
     CROSS JOIN LATERAL jsonb_array_elements(
         COALESCE(ad.diff::jsonb -> 'fieldChanges', '[]'::jsonb)) AS fc
     WHERE ad.event_date::date BETWEEN d.start_date AND d.end_date

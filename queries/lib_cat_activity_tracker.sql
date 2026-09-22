@@ -16,7 +16,7 @@ RETURNS TABLE(
     marc_added numeric,
     marc_modified numeric,
     marc_updated numeric,
-    marc_deleted numeric,
+    marc_deleted numeric
 )
 AS $$
 WITH catalogers (username, cataloger) AS (

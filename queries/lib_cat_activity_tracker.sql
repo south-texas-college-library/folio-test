@@ -8,6 +8,7 @@ CREATE FUNCTION lib_cat_activity_tracker(
 )
 RETURNS TABLE(
     cataloger text,
+    username text,
     instance_added numeric,
     instance_updated numeric,
     item_added numeric,
@@ -59,8 +60,7 @@ instance_updated AS (
         ON c.username = updated_by.username
     CROSS JOIN lib_cat_activity_tracker(start_date, end_date) d
     WHERE jsonb_extract_path_text(i.jsonb, 'hrid') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedDate')::date
-          BETWEEN start_date
-              AND end_date
+          BETWEEN start_date AND end_date
     GROUP BY COALESCE(c.cataloger, 'husker')
 ),
 item_added AS (
@@ -78,8 +78,7 @@ item_added AS (
         ON c.username = created_by.username
     CROSS JOIN lib_cat_activity_tracker(start_date, end_date) d
     WHERE jsonb_extract_path_text(i.jsonb, 'barcode') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'createdDate')::date
-          BETWEEN start_date
-              AND end_date
+          BETWEEN start_date AND end_date
     GROUP BY COALESCE(c.cataloger, 'husker')
 ),
 item_updated AS (
@@ -96,8 +95,7 @@ item_updated AS (
         ON c.username = updated_by.username
     CROSS JOIN lib_cat_activity_tracker(start_date, end_date) d
     WHERE jsonb_extract_path_text(i.jsonb, 'barcode') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedDate')::date
-          BETWEEN start_date
-              AND end_date
+          BETWEEN start_date AND end_date
     GROUP BY COALESCE(c.cataloger, 'husker')
 ),
 item_withdrawn AS (
@@ -111,8 +109,7 @@ item_withdrawn AS (
         ON c.username = updated_by.username
     CROSS JOIN lib_cat_activity_tracker(start_date, end_date) d
     WHERE jsonb_extract_path_text(i.jsonb, 'status', 'name') = 'Withdrawn' AND jsonb_extract_path_text(i.jsonb, 'status', 'date' )::date
-          BETWEEN start_date
-              AND end_date
+          BETWEEN start_date AND end_date
     GROUP BY COALESCE(c.cataloger, 'husker')
 ),
 audit_data AS (

@@ -68,8 +68,8 @@ AS $$
         LEFT JOIN folio_inventory.statistical_code itsc ON itsc.id = (jsonb_path_query_first(it.jsonb, '$.statisticalCodeIds[*]') #>> '{}')::uuid
         LEFT JOIN loans ON loans.item_id = it.id
     WHERE 
-        to_tsvector(REPLACE(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value') #>> '{}', '[\[\]"]', '', 'g'), '--', ' ')) @@ websearch_to_tsquery(subject)
-$$
+        TO_TSVECTOR(REGEXP_REPLACE(jsonb_path_query_array(ins.jsonb, '$.subjects[*].value')::text, '[\[\]"]', '', 'g')) @@ WEBSEARCH_TO_TSQUERY(subject)
+    $$
 LANGUAGE SQL
 STABLE
 PARALLEL SAFE;

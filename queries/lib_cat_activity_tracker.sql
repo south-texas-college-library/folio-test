@@ -7,16 +7,16 @@ CREATE FUNCTION lib_cat_activity_tracker(
     end_date date DEFAULT '2050-01-01'
 )
 RETURNS TABLE(
-    cataloger text
-    instance_added numeric
-    instance_updated numeric
-    item_added numeric
-    item_updated numeric
-    item_withdrawn numeric
-    marc_added numeric
-    marc_modified numeric
-    marc_updated numeric
-    marc_deleted numeric
+    cataloger text,
+    instance_added numeric,
+    instance_updated numeric,
+    item_added numeric,
+    item_updated numeric,
+    item_withdrawn numeric,
+    marc_added numeric,
+    marc_modified numeric,
+    marc_updated numeric,
+    marc_deleted numeric,
 )
 AS $$
 WITH catalogers (username, cataloger) AS (

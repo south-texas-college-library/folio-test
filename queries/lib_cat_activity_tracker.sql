@@ -9,15 +9,13 @@ CREATE FUNCTION lib_cat_activity_tracker(
 RETURNS TABLE(
     cataloger text,
     username text,
-    instance_added numeric,
-    instance_updated numeric,
+    instance_created numeric,
+    field_added numeric,
+    field_modified numeric,
+    field_removed numeric,
     item_added numeric,
     item_updated numeric,
-    item_withdrawn numeric,
-    marc_added numeric,
-    marc_modified numeric,
-    marc_updated numeric,
-    marc_deleted numeric
+    item_withdrawn numeric
 )
 AS $$
 WITH catalogers (username, cataloger) AS (
@@ -42,24 +40,6 @@ instance_added AS (
         ON c.username = created_by.username
     CROSS JOIN lib_cat_activity_tracker(start_date, end_date) d
     WHERE jsonb_extract_path_text(i.jsonb, 'hrid') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'createdDate')::date
-          BETWEEN start_date AND end_date
-    GROUP BY COALESCE(c.cataloger, 'husker')
-),
-instance_updated AS (
-    SELECT
-        COALESCE(c.cataloger, 'husker') AS cataloger,
-        COUNT(jsonb_extract_path_text(i.jsonb, 'hrid')) AS inst_updated
-    FROM folio_inventory.instance__ i
-    LEFT JOIN folio_permissions.permissions_users pu
-        ON jsonb_path_query_first(pu.jsonb, '$.permissions[*]') #>> '{}' = '07e78044-2804-496e-a3e7-074f557dd361'
-       AND jsonb_extract_path_text(pu.jsonb, 'userId')::uuid =
-           jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedByUserId')::uuid
-    LEFT JOIN folio_users.users__t updated_by
-        ON updated_by.id = jsonb_extract_path_text(pu.jsonb, 'userId')::uuid
-    LEFT JOIN catalogers c
-        ON c.username = updated_by.username
-    CROSS JOIN lib_cat_activity_tracker(start_date, end_date) d
-    WHERE jsonb_extract_path_text(i.jsonb, 'hrid') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedDate')::date
           BETWEEN start_date AND end_date
     GROUP BY COALESCE(c.cataloger, 'husker')
 ),
@@ -207,11 +187,9 @@ marc_change_counts AS (
 marc_summary AS (
     SELECT
         cataloger,
-        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'ADDED'), 0) AS marc_added,
-        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'DELETED'), 0) AS marc_deleted,
-        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'MODIFIED'), 0) AS marc_modified,
-        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'UPDATED'), 0) AS marc_updated,
-        SUM(change_count) AS total_marc_field_changes
+        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'ADDED'), 0) AS field_added,
+        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'MODIFIED'), 0) AS field_modified,
+        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'REMOVED'), 0) AS field_removed
     FROM marc_change_counts
     GROUP BY cataloger
 )
@@ -219,20 +197,15 @@ SELECT
     c.cataloger,
     c.username,
     COALESCE(ia.inst_added, 0)     AS "Instance Added",
-    COALESCE(iu.inst_updated, 0)   AS "Instance Updated",
+    COALESCE(ms.marc_added, 0)    AS "Field Added",
+    COALESCE(ms.marc_modified, 0) AS "Field Modified",
+    COALESCE(ms.marc_updated, 0)  AS "Field Removed",
     COALESCE(ita.item_added, 0)    AS "Item Added",
     COALESCE(itu.item_updated, 0)  AS "Item Updated",
-    COALESCE(iw.item_withdrawn, 0) AS "Item Withdrawn",
-    COALESCE(ms.marc_added, 0)    AS "MARC Added",
-    COALESCE(ms.marc_deleted, 0)  AS "MARC Deleted",
-    COALESCE(ms.marc_modified, 0) AS "MARC Modified",
-    COALESCE(ms.marc_updated, 0)  AS "MARC Updated"/*,
-    COALESCE(ms.total_marc_field_changes, 0) AS "Total MARC Field Changes"*/
+    COALESCE(iw.item_withdrawn, 0) AS "Item Withdrawn"
 FROM catalogers c
 LEFT JOIN instance_added ia
     ON ia.cataloger = c.cataloger
-LEFT JOIN instance_updated iu
-    ON iu.cataloger = c.cataloger
 LEFT JOIN item_added ita
     ON ita.cataloger = c.cataloger
 LEFT JOIN item_updated itu

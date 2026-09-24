@@ -197,9 +197,9 @@ SELECT
     c.cataloger,
     c.username,
     COALESCE(ia.inst_added, 0)     AS "Instance Added",
-    COALESCE(ms.marc_added, 0)    AS "Field Added",
-    COALESCE(ms.marc_modified, 0) AS "Field Modified",
-    COALESCE(ms.marc_updated, 0)  AS "Field Removed",
+    COALESCE(ms.field_added, 0)    AS "Field Added",
+    COALESCE(ms.field_modified, 0) AS "Field Modified",
+    COALESCE(ms.field_removed, 0)  AS "Field Removed",
     COALESCE(ita.item_added, 0)    AS "Item Added",
     COALESCE(itu.item_updated, 0)  AS "Item Updated",
     COALESCE(iw.item_withdrawn, 0) AS "Item Withdrawn"

@@ -7,13 +7,15 @@
       "name": "start_date",
       "displayName": "Earliest date of user creation",
       "type": "date",
-      "required": false
+      "required": false,
+      "default": "CURRENT_DATE"
     },
     {
       "name": "end_date",
       "displayName": "Latest date of user creation",
       "type": "date",
-      "required": false
+      "required": false,
+      "default": "{{today}}"
     }
   ]
 }

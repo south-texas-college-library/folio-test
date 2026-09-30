@@ -1,8 +1,8 @@
---metadb:function semester_loans
+--metadb:function technology_checkouts
 
-DROP FUNCTION IF EXISTS semester_loans;
+DROP FUNCTION IF EXISTS technology_checkouts;
 
-CREATE FUNCTION semester_loans(
+CREATE FUNCTION technology_checkouts(
     subtype TEXT DEFAULT NULL,
     item_library TEXT DEFAULT NULL
 )

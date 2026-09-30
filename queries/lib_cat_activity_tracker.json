@@ -1,5 +1,5 @@
 {
-    "displayName": "LIB - Cataloger Activity Report",
+    "displayName": "Library - Cataloger Activity Report",
     "description": "Displays FOLIO activity per cataloger for a given date range.",
     "instructions": "Input the date range to run the report.",
     "parameters": [

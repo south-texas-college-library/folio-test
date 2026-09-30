@@ -1,7 +1,7 @@
 {
   "displayName": "Collection - Technology Checkouts",
-  "description": "This report lists the semester loan assets based on their type and item library.",
-  "instructions": "Select a subtype and and item library to run the report.",
+  "description": "This report lists the technology checkouts assets based on their title, call number, type, item library, and PO number.",
+  "instructions": "Input a title, call number, subtype, item library, and PO number to run the report.",
   "parameters": [
     {
       "name": "subtype",
@@ -26,6 +26,12 @@
         "Starr County",
         "Technology"
       ]
+    },
+    {
+      "name": "po_number",
+      "displayName": "PO Number",
+      "type": "text",
+      "required": false
     }
   ]
 }

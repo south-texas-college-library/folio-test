@@ -4,20 +4,24 @@ DROP FUNCTION IF EXISTS technology_checkouts;
 
 CREATE FUNCTION technology_checkouts(
     subtype TEXT DEFAULT NULL,
-    item_library TEXT DEFAULT NULL
+    item_library TEXT DEFAULT NULL,
+    po_number TEXT DEFAULT NULL
 )
 RETURNS TABLE(
-    "A - Subtype" TEXT,
-    "B - Item Library" TEXT,
-    "C - Item Barcode" TEXT,
-    "D - Status" TEXT,
-    "E - Check Out Library" TEXT,
-    "F - Due Date" TEXT,
-    "G - User Barcode" TEXT,
-    "H - Name" TEXT,
-    "I - Phone Number" TEXT,
-	"J - Email" TEXT,
-    "K - Staff Notes" TEXT
+    "Subtype" TEXT,
+    "Title" TEXT,
+    "Call Number" TEXT,
+    "Item Library" TEXT,
+    "Barcode" TEXT,
+    "Status" TEXT,
+    "Check Out Library" TEXT,
+    "Due Date" TEXT,
+    "User #" TEXT,
+    "Name" TEXT,
+    "Phone" TEXT,
+	"Email" TEXT,
+    "PO Number" TEXT,
+    "Staff Notes" TEXT
 )
 AS $$
     WITH loans AS MATERIALIZED (
@@ -40,16 +44,19 @@ AS $$
     )
     SELECT
         insc.name AS "Subtype",
+        jsonb_extract_path_text(ins.jsonb, 'title') AS "Title",
+        jsonb_extract_path_text(hr.jsonb, 'callNumber') AS "Call Number",
         ll.name AS "Item Library",
-        jsonb_extract_path_text(it.jsonb, 'barcode') AS "Item Barcode",
+        jsonb_extract_path_text(it.jsonb, 'barcode') AS "Barcode",
         jsonb_extract_path_text(it.jsonb, 'status', 'name') AS "Status",
         loans.checkout_campus AS "Check Out Library",
         loans.due_date::DATE::TEXT AS "Due Date",
-        loans.user_barcode AS "User Barcode",
+        loans.user_barcode AS "User #",
         loans.full_name AS "Name",
-        loans.phone AS "Phone Number",
+        loans.phone AS "Phone",
         loans.email AS "Email",
-        NULLIF(REGEXP_REPLACE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "86e6410d-4c8b-4853-8054-bd5e563e9760").note') #>> '{}', '[\[\]"]', '', 'g'), '') AS "Staff Notes"
+        jsonb_path_query_first(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "5ec4ca65-aacc-4f16-aa9d-395efd89f850").note') #>> '{}' as "PO #",
+        TRANSLATE(jsonb_path_query_array(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "86e6410d-4c8b-4853-8054-bd5e563e9760").note') #>> '{}', '[]"', '') as "Staff Notes"
     FROM folio_inventory.instance ins
     JOIN folio_inventory.holdings_record hr ON hr.instanceid = ins.id
     JOIN folio_inventory.item it ON it.holdingsrecordid = hr.id
@@ -61,16 +68,17 @@ AS $$
     WHERE
         (item_library = 'All' OR ll.name = item_library)       
         AND CASE
-            WHEN subtype = 'Calculator' 
-                THEN insc.name = 'Calculator' AND m.name = 'SEM-ITEM'
-            WHEN subtype = 'Hotspot' 
-                THEN insc.name = 'Hotspot' AND m.name = 'SEMEXTEND-ITEM' AND hl.name != 'Storage'
-            WHEN subtype = 'Laptop' 
-                THEN insc.name = 'Laptop' AND m.name = 'SEMEXTEND-ITEM'
-            ELSE
-                (insc.name = 'Calculator' AND m.name = 'SEM-ITEM') 
-                OR (insc.name IN ('Laptop', 'Hotspot') AND m.name = 'SEMEXTEND-ITEM')
-        END
+                WHEN subtype = 'Calculator'
+                    THEN insc.name = 'Calculator' AND m.name = 'SEM-ITEM'
+                WHEN subtype = 'Hotspot'
+                    THEN insc.name = 'Hotspot' AND m.name = 'SEMEXTEND-ITEM' AND hl.name != 'Storage'
+                WHEN subtype = 'Laptop'
+                    THEN insc.name = 'Laptop' AND m.name = 'SEMEXTEND-ITEM' 
+                ELSE
+                    (insc.name = 'Calculator' AND m.name = 'SEM-ITEM') 
+                    OR (insc.name IN ('Laptop', 'Hotspot') AND m.name = 'SEMEXTEND-ITEM')
+            END
+        AND (po_number IS NULL OR jsonb_path_query_first(it.jsonb, '$.notes[*] ? (@.itemNoteTypeId == "5ec4ca65-aacc-4f16-aa9d-395efd89f850").note') #>> '{}' ilike ('%' || po_number || '%'))
     ORDER BY
         jsonb_extract_path_text(it.jsonb, 'barcode')
 $$

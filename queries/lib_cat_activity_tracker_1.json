@@ -1,7 +1,7 @@
 {
-    "displayName": "Library - Cataloger Activity Report",
+    "displayName": "Library - Cataloger Activity Report 1",
     "description": "Displays FOLIO activity per cataloger for a given date range.",
-    "instructions": "Input the date range to run the report.",
+    "instructions": "Input the date range and, optionally, select a system to run the report.",
     "parameters": [
         {
             "name": "start_date",
@@ -28,6 +28,6 @@
                 "starbuck",
                 "husker"
             ]
-        },
+        }
     ]
 }

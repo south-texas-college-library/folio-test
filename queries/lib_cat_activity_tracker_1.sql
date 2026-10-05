@@ -197,13 +197,13 @@ marc_summary AS (
 SELECT
     c.cataloger,
     c.username,
-    COALESCE(ia.inst_added, 0)     AS "Instance Added",
-    COALESCE(ms.field_added, 0)    AS "Field Added",
-    COALESCE(ms.field_modified, 0) AS "Field Modified",
-    COALESCE(ms.field_removed, 0)  AS "Field Removed",
-    COALESCE(ita.item_added, 0)    AS "Item Added",
-    COALESCE(itu.item_updated, 0)  AS "Item Updated",
-    COALESCE(iw.item_withdrawn, 0) AS "Item Withdrawn"
+    COALESCE(ia.inst_added, 0)::numeric     AS "Instance Added",
+    COALESCE(ms.field_added, 0)::numeric    AS "Field Added",
+    COALESCE(ms.field_modified, 0)::numeric AS "Field Modified",
+    COALESCE(ms.field_removed, 0)::numeric  AS "Field Removed",
+    COALESCE(ita.item_added, 0)::numeric    AS "Item Added",
+    COALESCE(itu.item_updated, 0)::numeric  AS "Item Updated",
+    COALESCE(iw.item_withdrawn, 0)::numeric AS "Item Withdrawn"
 FROM catalogers c
 LEFT JOIN instance_added ia
     ON ia.cataloger = c.cataloger
@@ -215,7 +215,12 @@ LEFT JOIN item_withdrawn iw
     ON iw.cataloger = c.cataloger
 LEFT JOIN marc_summary ms
     ON ms.cataloger = c.cataloger
-/*ORDER BY
+WHERE
+       system IS NULL
+    OR BTRIM(system) = ''
+    OR LOWER(BTRIM(system)) = 'all'
+    OR LOWER(c.cataloger) = LOWER(BTRIM(system))
+ORDER BY
     CASE c.cataloger
         WHEN 'boomer'   THEN 1
         WHEN 'helo'     THEN 2
@@ -223,9 +228,11 @@ LEFT JOIN marc_summary ms
         WHEN 'starbuck' THEN 4
         WHEN 'husker'   THEN 5
         ELSE 6
-    END;*/
-WHERE
-	c.cataloger = 'system'
+    END;
+$$
+LANGUAGE SQL
+STABLE
+PARALLEL SAFE;
 $$
 LANGUAGE SQL
 STABLE

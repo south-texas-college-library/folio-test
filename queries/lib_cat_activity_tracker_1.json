@@ -19,10 +19,10 @@
             "name": "system",
             "displayName": "System Name",
             "type": "text",
-            "required": true,
+            "required": false,
             "default": "All",
             "controlled.options": [
-                "all",
+                "",
                 "boomer",
                 "helo",
                 "apollo",

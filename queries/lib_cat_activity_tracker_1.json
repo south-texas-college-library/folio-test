@@ -22,7 +22,7 @@
             "required": true,
             "default": "All",
             "controlled.options": [
-                "",
+                "all",
                 "boomer",
                 "helo",
                 "apollo",

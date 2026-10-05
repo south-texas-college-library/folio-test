@@ -14,7 +14,20 @@
             "displayName": "End Date",
             "type": "date",
             "required": false
-        }
-        
+        },
+        {
+            "name": "system",
+            "displayName": "System Name",
+            "type": "text",
+            "required": true,
+            "default": "All",
+            "controlled.options": [
+                "boomer",
+                "helo",
+                "apollo",
+                "starbuck",
+                "husker"
+            ]
+        },
     ]
 }

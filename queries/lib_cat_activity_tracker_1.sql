@@ -1,4 +1,4 @@
---metadb:function lib_cat_activity_tracker
+--metadb:function lib_cat_activity_tracker_1
 
 DROP FUNCTION IF EXISTS lib_cat_activity_tracker_1;
 

@@ -222,10 +222,10 @@ LEFT JOIN marc_summary ms
         WHEN 'apollo'   THEN 3
         WHEN 'starbuck' THEN 4
         WHEN 'husker'   THEN 5
-        ELSE 6*/
+        ELSE 6
+    END;*/
 WHERE
 	c.cataloger = 'system'
-    END;
 $$
 LANGUAGE SQL
 STABLE

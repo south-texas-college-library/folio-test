@@ -108,7 +108,7 @@ inventory_activity AS (
         date_trunc(
             p.period_type,
             some_date_column::timestamp
-        )::date AS bucket_start
+        )::date
         END,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
@@ -170,7 +170,7 @@ inventory_activity AS (
         date_trunc(
             p.period_type,
             some_date_column::timestamp
-        )::date AS bucket_start
+        )::date
         END,
         COALESCE(c.cataloger, 'husker')
 
@@ -185,7 +185,7 @@ inventory_activity AS (
         date_trunc(
             p.period_type,
             some_date_column::timestamp
-        )::date AS bucket_start
+        )::date
         END,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
@@ -247,7 +247,7 @@ inventory_activity AS (
         date_trunc(
             p.period_type,
             some_date_column::timestamp
-        )::date AS bucket_start
+        )::date
         END,
         COALESCE(c.cataloger, 'husker')
 
@@ -262,7 +262,7 @@ inventory_activity AS (
         date_trunc(
             p.period_type,
             some_date_column::timestamp
-        )::date AS bucket_start
+        )::date
         END,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
@@ -324,7 +324,7 @@ inventory_activity AS (
         date_trunc(
             p.period_type,
             some_date_column::timestamp
-        )::date AS bucket_start
+        )::date
         END,
         COALESCE(c.cataloger, 'husker')
 
@@ -339,7 +339,7 @@ inventory_activity AS (
         date_trunc(
             p.period_type,
             some_date_column::timestamp
-        )::date AS bucket_start
+        )::date
         END,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
@@ -382,7 +382,7 @@ inventory_activity AS (
         date_trunc(
             p.period_type,
             some_date_column::timestamp
-        )::date AS bucket_start
+        )::date
         END,
         COALESCE(c.cataloger, 'husker')
 ),
@@ -531,7 +531,7 @@ field_changes AS (
         date_trunc(
             p.period_type,
             some_date_column::timestamp
-        )::date AS bucket_start
+        )::date
         END,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,

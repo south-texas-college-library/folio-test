@@ -1,8 +1,8 @@
 -- metadb:function lib_cat_activity_tracker_1
 
-DROP FUNCTION IF EXISTS lib_cat_activity_tracker_1(date, date, text);
+DROP FUNCTION IF EXISTS lib_cat_activity_tracker_2(date, date, text);
 
-CREATE FUNCTION lib_cat_activity_tracker_1(
+CREATE FUNCTION lib_cat_activity_tracker_2(
     start_date date DEFAULT DATE '2000-01-01',
     end_date   date DEFAULT DATE '2050-01-01',
     system     text DEFAULT NULL
@@ -62,7 +62,7 @@ reporting_periods AS (
                     THEN (gs + INTERVAL '1 month - 1 day')::date
                 WHEN 'week'
                     THEN (gs + INTERVAL '6 days')::date
-                ELSE /*gs::date*/
+                ELSE gs::date
             END,
             p.report_end
         ) AS period_end
@@ -74,7 +74,6 @@ reporting_periods AS (
         CASE p.period_type
             WHEN 'month' THEN INTERVAL '1 month'
             WHEN 'week'  THEN INTERVAL '1 week'
-            ELSE /*INTERVAL '1 day'*/
         END
     ) AS gs
 ),
@@ -416,7 +415,7 @@ inventory_activity AS (
 
 inventory_summary AS (
     SELECT
-        bucket_start,
+        --bucket_start,
         cataloger,
 
         COALESCE(
@@ -446,7 +445,7 @@ inventory_summary AS (
     FROM inventory_activity
 
     GROUP BY
-        bucket_start,
+        --bucket_start,
         cataloger
 ),
 
@@ -589,7 +588,7 @@ field_changes AS (
 
 marc_summary AS (
     SELECT
-        bucket_start,
+        --bucket_start,
         cataloger,
 
         COUNT(*)
@@ -607,7 +606,7 @@ marc_summary AS (
     FROM field_changes
 
     GROUP BY
-        bucket_start,
+        --bucket_start,
         cataloger
 ),
 

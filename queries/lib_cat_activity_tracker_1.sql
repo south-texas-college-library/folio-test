@@ -1,13 +1,16 @@
---metadb:function lib_cat_activity_tracker_1
+-- metadb:function lib_cat_activity_tracker_1
 
-DROP FUNCTION IF EXISTS lib_cat_activity_tracker_1;
+DROP FUNCTION IF EXISTS lib_cat_activity_tracker_1(date, date, text);
 
 CREATE FUNCTION lib_cat_activity_tracker_1(
-    start_date date DEFAULT '2000-01-01',
-    end_date date DEFAULT '2050-01-01',
-    system text default NULL
+    start_date date DEFAULT DATE '2000-01-01',
+    end_date   date DEFAULT DATE '2050-01-01',
+    system     text DEFAULT NULL
 )
 RETURNS TABLE(
+    period_type text,
+    period_start date,
+    period_end date,
     cataloger text,
     username text,
     instance_created numeric,
@@ -19,216 +22,630 @@ RETURNS TABLE(
     item_withdrawn numeric
 )
 AS $$
-WITH catalogers (username, cataloger) AS (
+WITH RECURSIVE
+parameters AS (
+    SELECT
+        start_date AS report_start,
+        end_date   AS report_end,
+        CASE
+            /*
+             * Check month first because any date range longer than
+             * one month is also longer than one week.
+             */
+            WHEN end_date > (start_date + INTERVAL '1 month')::date
+                THEN 'month'
+
+            WHEN end_date > start_date + 7
+                THEN 'week'
+
+            ELSE 'day'
+        END AS period_type
+),
+
+/*
+ * Generate every reporting period, even if no activity occurred
+ * during one of the periods.
+ */
+reporting_periods AS (
+    SELECT
+        p.period_type,
+        gs::date AS bucket_start,
+
+        GREATEST(
+            gs::date,
+            p.report_start
+        ) AS period_start,
+
+        LEAST(
+            CASE p.period_type
+                WHEN 'month'
+                    THEN (gs + INTERVAL '1 month - 1 day')::date
+                WHEN 'week'
+                    THEN (gs + INTERVAL '6 days')::date
+                ELSE gs::date
+            END,
+            p.report_end
+        ) AS period_end
+
+    FROM parameters p
+    CROSS JOIN LATERAL generate_series(
+        date_trunc(p.period_type, p.report_start::timestamp),
+        date_trunc(p.period_type, p.report_end::timestamp),
+        CASE p.period_type
+            WHEN 'month' THEN INTERVAL '1 month'
+            WHEN 'week'  THEN INTERVAL '1 week'
+            ELSE INTERVAL '1 day'
+        END
+    ) AS gs
+),
+
+catalogers (username, cataloger, display_order) AS (
     VALUES
-        ('ahern267', 'boomer'),
-        ('treyna1',  'helo'),
-        ('mtorre43', 'apollo'),
-        ('marjona4', 'starbuck'),
-        (NULL,        'husker')
+        ('ahern267', 'boomer',   1),
+        ('treyna1',  'helo',     2),
+        ('mtorre43', 'apollo',   3),
+        ('marjona4', 'starbuck', 4),
+        (NULL,       'husker',   5)
 ),
-instance_added AS (
+
+/*
+ * Normalize Inventory activity into one result set.
+ *
+ * metric identifies which output column will receive the count.
+ */
+inventory_activity AS (
+
+    /* Instances created */
     SELECT
+        date_trunc(
+            p.period_type,
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'createdDate'
+            )::timestamp
+        )::date AS bucket_start,
+
         COALESCE(c.cataloger, 'husker') AS cataloger,
-        COUNT(jsonb_extract_path_text(i.jsonb, 'hrid')) AS inst_added
+        'instance_created'::text AS metric,
+        COUNT(*)::numeric AS activity_count
+
     FROM folio_inventory.instance__ i
+
+    CROSS JOIN parameters p
+
     LEFT JOIN folio_permissions.permissions_users pu
-        ON jsonb_path_query_first(pu.jsonb,'$.permissions[*]') #>> '{}' = '07e78044-2804-496e-a3e7-074f557dd361'
-       AND jsonb_extract_path_text(pu.jsonb, 'userId')::uuid = jsonb_extract_path_text(i.jsonb, 'metadata', 'createdByUserId')::uuid
+        ON jsonb_extract_path_text(
+               pu.jsonb,
+               'userId'
+           )::uuid =
+           jsonb_extract_path_text(
+               i.jsonb,
+               'metadata',
+               'createdByUserId'
+           )::uuid
+
+       AND EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements_text(
+                COALESCE(
+                    pu.jsonb -> 'permissions',
+                    '[]'::jsonb
+                )
+            ) permission
+            WHERE permission =
+                '07e78044-2804-496e-a3e7-074f557dd361'
+       )
+
     LEFT JOIN folio_users.users__t created_by
-        ON created_by.id = jsonb_extract_path_text(pu.jsonb, 'userId')::uuid
+        ON created_by.id =
+           jsonb_extract_path_text(
+               pu.jsonb,
+               'userId'
+           )::uuid
+
     LEFT JOIN catalogers c
         ON c.username = created_by.username
-    CROSS JOIN lib_cat_activity_tracker_1(start_date, end_date) d
-    WHERE jsonb_extract_path_text(i.jsonb, 'hrid') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'createdDate')::date
-          BETWEEN start_date AND end_date
-    GROUP BY COALESCE(c.cataloger, 'husker')
-),
-item_added AS (
+
+    WHERE jsonb_extract_path_text(i.jsonb, 'hrid')
+              !~ '^(SE|L|RSV|T)'
+
+      AND jsonb_extract_path_text(
+              i.jsonb,
+              'metadata',
+              'createdDate'
+          )::date
+          BETWEEN p.report_start AND p.report_end
+
+    GROUP BY
+        date_trunc(
+            p.period_type,
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'createdDate'
+            )::timestamp
+        )::date,
+        COALESCE(c.cataloger, 'husker')
+
+    UNION ALL
+
+    /* Items created */
     SELECT
+        date_trunc(
+            p.period_type,
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'createdDate'
+            )::timestamp
+        )::date AS bucket_start,
+
         COALESCE(c.cataloger, 'husker') AS cataloger,
-        COUNT(jsonb_extract_path_text(i.jsonb, 'barcode')) AS item_added
+        'item_added'::text AS metric,
+        COUNT(*)::numeric AS activity_count
+
     FROM folio_inventory.item__ i
+
+    CROSS JOIN parameters p
+
     LEFT JOIN folio_permissions.permissions_users pu
-        ON jsonb_path_query_first(pu.jsonb, '$.permissions[*]') #>> '{}' = '07e78044-2804-496e-a3e7-074f557dd361' 
-        AND jsonb_extract_path_text(pu.jsonb,'userId')::uuid =
-           jsonb_extract_path_text(i.jsonb,'metadata', 'createdByUserId')::uuid
+        ON jsonb_extract_path_text(
+               pu.jsonb,
+               'userId'
+           )::uuid =
+           jsonb_extract_path_text(
+               i.jsonb,
+               'metadata',
+               'createdByUserId'
+           )::uuid
+
+       AND EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements_text(
+                COALESCE(
+                    pu.jsonb -> 'permissions',
+                    '[]'::jsonb
+                )
+            ) permission
+            WHERE permission =
+                '07e78044-2804-496e-a3e7-074f557dd361'
+       )
+
     LEFT JOIN folio_users.users__t created_by
-        ON created_by.id = jsonb_extract_path_text(pu.jsonb, 'userId')::uuid
+        ON created_by.id =
+           jsonb_extract_path_text(
+               pu.jsonb,
+               'userId'
+           )::uuid
+
     LEFT JOIN catalogers c
         ON c.username = created_by.username
-    CROSS JOIN lib_cat_activity_tracker_1(start_date, end_date) d
-    WHERE jsonb_extract_path_text(i.jsonb, 'barcode') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'createdDate')::date
-          BETWEEN start_date AND end_date
-    GROUP BY COALESCE(c.cataloger, 'husker')
-),
-item_updated AS (
+
+    WHERE jsonb_extract_path_text(i.jsonb, 'barcode')
+              !~ '^(SE|L|RSV|T)'
+
+      AND jsonb_extract_path_text(
+              i.jsonb,
+              'metadata',
+              'createdDate'
+          )::date
+          BETWEEN p.report_start AND p.report_end
+
+    GROUP BY
+        date_trunc(
+            p.period_type,
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'createdDate'
+            )::timestamp
+        )::date,
+        COALESCE(c.cataloger, 'husker')
+
+    UNION ALL
+
+    /* Items updated */
     SELECT
+        date_trunc(
+            p.period_type,
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'updatedDate'
+            )::timestamp
+        )::date AS bucket_start,
+
         COALESCE(c.cataloger, 'husker') AS cataloger,
-        COUNT(jsonb_extract_path_text(i.jsonb, 'barcode')) AS item_updated
+        'item_updated'::text AS metric,
+        COUNT(*)::numeric AS activity_count
+
     FROM folio_inventory.item__ i
+
+    CROSS JOIN parameters p
+
     LEFT JOIN folio_permissions.permissions_users pu
-        ON jsonb_path_query_first(pu.jsonb,'$.permissions[*]') #>> '{}' = '07e78044-2804-496e-a3e7-074f557dd361'
-       AND jsonb_extract_path_text(pu.jsonb, 'userId')::uuid = jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedByUserId')::uuid
+        ON jsonb_extract_path_text(
+               pu.jsonb,
+               'userId'
+           )::uuid =
+           jsonb_extract_path_text(
+               i.jsonb,
+               'metadata',
+               'updatedByUserId'
+           )::uuid
+
+       AND EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements_text(
+                COALESCE(
+                    pu.jsonb -> 'permissions',
+                    '[]'::jsonb
+                )
+            ) permission
+            WHERE permission =
+                '07e78044-2804-496e-a3e7-074f557dd361'
+       )
+
     LEFT JOIN folio_users.users__t updated_by
-        ON updated_by.id = jsonb_extract_path_text(pu.jsonb, 'userId')::uuid
+        ON updated_by.id =
+           jsonb_extract_path_text(
+               pu.jsonb,
+               'userId'
+           )::uuid
+
     LEFT JOIN catalogers c
         ON c.username = updated_by.username
-    CROSS JOIN lib_cat_activity_tracker_1(start_date, end_date) d
-    WHERE jsonb_extract_path_text(i.jsonb, 'barcode') !~ '^(SE|L|RSV|T)' AND jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedDate')::date
-          BETWEEN start_date AND end_date
-    GROUP BY COALESCE(c.cataloger, 'husker')
-),
-item_withdrawn AS (
+
+    WHERE jsonb_extract_path_text(i.jsonb, 'barcode')
+              !~ '^(SE|L|RSV|T)'
+
+      AND jsonb_extract_path_text(
+              i.jsonb,
+              'metadata',
+              'updatedDate'
+          )::date
+          BETWEEN p.report_start AND p.report_end
+
+    GROUP BY
+        date_trunc(
+            p.period_type,
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'updatedDate'
+            )::timestamp
+        )::date,
+        COALESCE(c.cataloger, 'husker')
+
+    UNION ALL
+
+    /* Items withdrawn */
     SELECT
+        date_trunc(
+            p.period_type,
+            jsonb_extract_path_text(
+                i.jsonb,
+                'status',
+                'date'
+            )::timestamp
+        )::date AS bucket_start,
+
         COALESCE(c.cataloger, 'husker') AS cataloger,
-        COUNT(jsonb_extract_path_text(i.jsonb, 'barcode')) AS item_withdrawn
+        'item_withdrawn'::text AS metric,
+        COUNT(*)::numeric AS activity_count
+
     FROM folio_inventory.item__ i
+
+    CROSS JOIN parameters p
+
     LEFT JOIN folio_users.users__t updated_by
-        ON updated_by.id = jsonb_extract_path_text(i.jsonb, 'metadata', 'updatedByUserId')::uuid
+        ON updated_by.id =
+           jsonb_extract_path_text(
+               i.jsonb,
+               'metadata',
+               'updatedByUserId'
+           )::uuid
+
     LEFT JOIN catalogers c
         ON c.username = updated_by.username
-    CROSS JOIN lib_cat_activity_tracker_1(start_date, end_date) d
-    WHERE jsonb_extract_path_text(i.jsonb, 'status', 'name') = 'Withdrawn' AND jsonb_extract_path_text(i.jsonb, 'status', 'date' )::date
-          BETWEEN start_date AND end_date
-    GROUP BY COALESCE(c.cataloger, 'husker')
+
+    WHERE jsonb_extract_path_text(
+              i.jsonb,
+              'status',
+              'name'
+          ) = 'Withdrawn'
+
+      AND jsonb_extract_path_text(
+              i.jsonb,
+              'status',
+              'date'
+          )::date
+          BETWEEN p.report_start AND p.report_end
+
+    GROUP BY
+        date_trunc(
+            p.period_type,
+            jsonb_extract_path_text(
+                i.jsonb,
+                'status',
+                'date'
+            )::timestamp
+        )::date,
+        COALESCE(c.cataloger, 'husker')
 ),
+
+inventory_summary AS (
+    SELECT
+        bucket_start,
+        cataloger,
+
+        COALESCE(
+            SUM(activity_count)
+            FILTER (WHERE metric = 'instance_created'),
+            0
+        )::numeric AS instance_created,
+
+        COALESCE(
+            SUM(activity_count)
+            FILTER (WHERE metric = 'item_added'),
+            0
+        )::numeric AS item_added,
+
+        COALESCE(
+            SUM(activity_count)
+            FILTER (WHERE metric = 'item_updated'),
+            0
+        )::numeric AS item_updated,
+
+        COALESCE(
+            SUM(activity_count)
+            FILTER (WHERE metric = 'item_withdrawn'),
+            0
+        )::numeric AS item_withdrawn
+
+    FROM inventory_activity
+
+    GROUP BY
+        bucket_start,
+        cataloger
+),
+
 audit_data AS (
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p0_2026_q2__
-    WHERE action = 'UPDATED'/*
-    UNION all
+    WHERE action = 'UPDATED'
+
+    /*
+    UNION ALL
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p0_2026_q3__
-    WHERE action = 'UPDATED'*/
+    WHERE action = 'UPDATED'
+    */
+
     UNION ALL
+
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p1_2026_q2__
     WHERE action = 'UPDATED'
+
     UNION ALL
+
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p1_2026_q3__
     WHERE action = 'UPDATED'
+
     UNION ALL
+
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p2_2026_q2__
     WHERE action = 'UPDATED'
+
     UNION ALL
+
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p2_2026_q3__
     WHERE action = 'UPDATED'
+
     UNION ALL
+
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p3_2026_q2__
-    WHERE action = 'UPDATED'/*
+    WHERE action = 'UPDATED'
+
+    /*
     UNION ALL
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p3_2026_q3__
-    WHERE action = 'UPDATED'*/
+    WHERE action = 'UPDATED'
+    */
+
     UNION ALL
+
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p4_2026_q2__
     WHERE action = 'UPDATED'
+
     UNION ALL
+
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p4_2026_q3__
     WHERE action = 'UPDATED'
+
     UNION ALL
+
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p5_2026_q2__
-    WHERE action = 'UPDATED'/*
+    WHERE action = 'UPDATED'
+
+    /*
     UNION ALL
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p5_2026_q3__
-    WHERE action = 'UPDATED'*/
+    WHERE action = 'UPDATED'
+    */
+
     UNION ALL
+
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p6_2026_q2__
     WHERE action = 'UPDATED'
+
     UNION ALL
+
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p6_2026_q3__
     WHERE action = 'UPDATED'
+
     UNION ALL
+
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p7_2026_q2__
     WHERE action = 'UPDATED'
+
     UNION ALL
+
     SELECT user_id, action, diff, event_date
     FROM folio_audit.marc_bib_audit_p7_2026_q3__
     WHERE action = 'UPDATED'
 ),
+
 field_changes AS (
     SELECT
-        ad.user_id,
-        ad.event_date,
-        fc ->> 'fieldName'  AS field_name,
-        fc ->> 'fullPath'   AS full_path,
-        fc ->> 'changeType' AS change_type
-    FROM audit_data ad
-    CROSS JOIN lib_cat_activity_tracker_1(start_date, end_date) d
-    CROSS JOIN LATERAL jsonb_array_elements(
-        COALESCE(ad.diff::jsonb -> 'fieldChanges', '[]'::jsonb)) AS fc
-    WHERE ad.event_date::date BETWEEN start_date AND end_date
-),
-marc_change_counts AS (
-    SELECT
+        date_trunc(
+            p.period_type,
+            ad.event_date::timestamp
+        )::date AS bucket_start,
+
         COALESCE(c.cataloger, 'husker') AS cataloger,
-        fc.change_type,
-        COUNT(*) AS change_count
-    FROM field_changes fc
+        fc ->> 'changeType' AS change_type
+
+    FROM audit_data ad
+
+    CROSS JOIN parameters p
+
+    CROSS JOIN LATERAL jsonb_array_elements(
+        COALESCE(
+            ad.diff::jsonb -> 'fieldChanges',
+            '[]'::jsonb
+        )
+    ) AS fc
+
     LEFT JOIN folio_users.users__t audit_user
-        ON audit_user.id = fc.user_id
+        ON audit_user.id = ad.user_id
+
     LEFT JOIN catalogers c
         ON c.username = audit_user.username
-    WHERE fc.change_type IS NOT NULL
-    GROUP BY
-        COALESCE(c.cataloger, 'husker'), fc.change_type
+
+    WHERE ad.event_date::date
+          BETWEEN p.report_start AND p.report_end
+
+      AND fc ->> 'changeType' IS NOT NULL
 ),
+
 marc_summary AS (
     SELECT
+        bucket_start,
         cataloger,
-        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'ADDED'), 0) AS field_added,
-        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'MODIFIED'), 0) AS field_modified,
-        COALESCE(SUM(change_count) FILTER (WHERE change_type = 'REMOVED'), 0) AS field_removed
-    FROM marc_change_counts
-    GROUP BY cataloger
+
+        COUNT(*)
+        FILTER (WHERE change_type = 'ADDED')
+        ::numeric AS field_added,
+
+        COUNT(*)
+        FILTER (WHERE change_type = 'MODIFIED')
+        ::numeric AS field_modified,
+
+        COUNT(*)
+        FILTER (WHERE change_type = 'REMOVED')
+        ::numeric AS field_removed
+
+    FROM field_changes
+
+    GROUP BY
+        bucket_start,
+        cataloger
+),
+
+/*
+ * Create one row for every period/cataloger combination.
+ * This guarantees zero-value rows when no activity occurred.
+ */
+period_catalogers AS (
+    SELECT
+        rp.period_type,
+        rp.bucket_start,
+        rp.period_start,
+        rp.period_end,
+        c.cataloger,
+        c.username,
+        c.display_order
+
+    FROM reporting_periods rp
+    CROSS JOIN catalogers c
+
+    WHERE
+           system IS NULL
+        OR BTRIM(system) = ''
+        OR LOWER(BTRIM(system)) = 'all'
+        OR LOWER(c.cataloger) = LOWER(BTRIM(system))
 )
+
 SELECT
-    c.cataloger,
-    c.username,
-    COALESCE(ia.inst_added, 0)::numeric     AS "Instance Added",
-    COALESCE(ms.field_added, 0)::numeric    AS "Field Added",
-    COALESCE(ms.field_modified, 0)::numeric AS "Field Modified",
-    COALESCE(ms.field_removed, 0)::numeric  AS "Field Removed",
-    COALESCE(ita.item_added, 0)::numeric    AS "Item Added",
-    COALESCE(itu.item_updated, 0)::numeric  AS "Item Updated",
-    COALESCE(iw.item_withdrawn, 0)::numeric AS "Item Withdrawn"
-FROM catalogers c
-LEFT JOIN instance_added ia
-    ON ia.cataloger = c.cataloger
-LEFT JOIN item_added ita
-    ON ita.cataloger = c.cataloger
-LEFT JOIN item_updated itu
-    ON itu.cataloger = c.cataloger
-LEFT JOIN item_withdrawn iw
-    ON iw.cataloger = c.cataloger
-LEFT JOIN marc_summary ms
-    ON ms.cataloger = c.cataloger
-WHERE
-       system IS NULL
-    OR BTRIM(system) = ''
-    OR LOWER(BTRIM(system)) = 'all'
-    OR LOWER(c.cataloger) = LOWER(BTRIM(system))
+    pc.period_type,
+    pc.period_start,
+    pc.period_end,
+    pc.cataloger,
+    pc.username,
+
+    COALESCE(
+        inventory.instance_created,
+        0
+    )::numeric AS instance_created,
+
+    COALESCE(
+        marc.field_added,
+        0
+    )::numeric AS field_added,
+
+    COALESCE(
+        marc.field_modified,
+        0
+    )::numeric AS field_modified,
+
+    COALESCE(
+        marc.field_removed,
+        0
+    )::numeric AS field_removed,
+
+    COALESCE(
+        inventory.item_added,
+        0
+    )::numeric AS item_added,
+
+    COALESCE(
+        inventory.item_updated,
+        0
+    )::numeric AS item_updated,
+
+    COALESCE(
+        inventory.item_withdrawn,
+        0
+    )::numeric AS item_withdrawn
+
+FROM period_catalogers pc
+
+LEFT JOIN inventory_summary inventory
+    ON inventory.bucket_start = pc.bucket_start
+   AND inventory.cataloger = pc.cataloger
+
+LEFT JOIN marc_summary marc
+    ON marc.bucket_start = pc.bucket_start
+   AND marc.cataloger = pc.cataloger
+
 ORDER BY
-    CASE c.cataloger
-        WHEN 'boomer'   THEN 1
-        WHEN 'helo'     THEN 2
-        WHEN 'apollo'   THEN 3
-        WHEN 'starbuck' THEN 4
-        WHEN 'husker'   THEN 5
-        ELSE 6
-    END;
+    pc.period_start,
+    pc.display_order;
 $$
 LANGUAGE SQL
 STABLE

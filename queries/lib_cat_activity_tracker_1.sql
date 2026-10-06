@@ -641,11 +641,11 @@ period_catalogers AS (
 )
 
 SELECT
+    pc.cataloger,
+    pc.username,
     pc.period_type,
     pc.period_start,
     pc.period_end,
-    pc.cataloger,
-    pc.username,
 
     COALESCE(
         inventory.instance_created,

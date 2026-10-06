@@ -47,26 +47,20 @@ parameters AS (
  * during one of the periods.
  */
 reporting_periods AS (
+    /* Weekly and monthly periods */
     SELECT
         p.period_type,
         gs::date AS bucket_start,
-
-        GREATEST(
-            gs::date,
-            p.report_start
-        ) AS period_start,
-
+        GREATEST(gs::date, p.report_start) AS period_start,
         LEAST(
             CASE p.period_type
                 WHEN 'month'
                     THEN (gs + INTERVAL '1 month - 1 day')::date
                 WHEN 'week'
                     THEN (gs + INTERVAL '6 days')::date
-                ELSE gs::date
             END,
             p.report_end
         ) AS period_end
-
     FROM parameters p
     CROSS JOIN LATERAL generate_series(
         date_trunc(p.period_type, p.report_start::timestamp),
@@ -76,6 +70,18 @@ reporting_periods AS (
             WHEN 'week'  THEN INTERVAL '1 week'
         END
     ) AS gs
+    WHERE p.period_type IN ('month', 'week')
+
+    UNION ALL
+
+    /* One general-total period */
+    SELECT
+        p.period_type,
+        p.report_start AS bucket_start,
+        p.report_start AS period_start,
+        p.report_end AS period_end
+    FROM parameters p
+    WHERE p.period_type = 'total'
 ),
 
 catalogers (username, cataloger, display_order) AS (
@@ -108,7 +114,7 @@ inventory_activity AS (
                 'createdDate'
             )::timestamp
         )::date
-    END,
+    END AS bucket_start,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
         'instance_created'::text AS metric,
@@ -193,7 +199,7 @@ inventory_activity AS (
                 'createdDate'
             )::timestamp
         )::date
-    END,
+    END AS bucket_start,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
         'item_added'::text AS metric,
@@ -277,7 +283,7 @@ inventory_activity AS (
                 'updatedDate'
             )::timestamp
         )::date
-    END,
+    END AS bucket_start,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
         'item_updated'::text AS metric,
@@ -362,7 +368,7 @@ inventory_activity AS (
                 'date'
             )::timestamp
         )::date
-    END,
+    END AS bucket_start,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
         'item_withdrawn'::text AS metric,
@@ -415,7 +421,7 @@ inventory_activity AS (
 
 inventory_summary AS (
     SELECT
-        --bucket_start,
+        bucket_start,
         cataloger,
 
         COALESCE(
@@ -445,7 +451,7 @@ inventory_summary AS (
     FROM inventory_activity
 
     GROUP BY
-        --bucket_start,
+        bucket_start,
         cataloger
 ),
 
@@ -558,7 +564,7 @@ field_changes AS (
             p.period_type,
             ad.event_date::timestamp
         )::date
-    END,
+    END AS bucket_start,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
         fc ->> 'changeType' AS change_type
@@ -588,7 +594,7 @@ field_changes AS (
 
 marc_summary AS (
     SELECT
-        --bucket_start,
+        bucket_start,
         cataloger,
 
         COUNT(*)
@@ -606,7 +612,7 @@ marc_summary AS (
     FROM field_changes
 
     GROUP BY
-        --bucket_start,
+        bucket_start,
         cataloger
 ),
 
@@ -616,12 +622,12 @@ marc_summary AS (
  */
 period_catalogers AS (
     SELECT
+        c.cataloger,
+        c.username,
         rp.period_type,
         rp.bucket_start,
         rp.period_start,
         rp.period_end,
-        c.cataloger,
-        c.username,
         c.display_order
 
     FROM reporting_periods rp

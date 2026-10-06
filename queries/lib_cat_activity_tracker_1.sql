@@ -50,16 +50,23 @@ reporting_periods AS (
     SELECT
         p.period_type,
         gs::date AS bucket_start,
-        gs::date AS period_start,
+
+        GREATEST(
+            gs::date,
+            p.report_start
+        ) AS period_start,
+
         LEAST(
             CASE p.period_type
                 WHEN 'month'
                     THEN (gs + INTERVAL '1 month - 1 day')::date
                 WHEN 'week'
                     THEN (gs + INTERVAL '6 days')::date
+                ELSE /*gs::date*/
             END,
             p.report_end
         ) AS period_end
+
     FROM parameters p
     CROSS JOIN LATERAL generate_series(
         date_trunc(p.period_type, p.report_start::timestamp),
@@ -67,20 +74,9 @@ reporting_periods AS (
         CASE p.period_type
             WHEN 'month' THEN INTERVAL '1 month'
             WHEN 'week'  THEN INTERVAL '1 week'
+            ELSE /*INTERVAL '1 day'*/
         END
-    ) gs
-    WHERE p.period_type IN ('week','month')
-
-    UNION ALL
-
-    /* Single total period */
-    SELECT
-        'total',
-        p.report_start,
-        p.report_start,
-        p.report_end
-    FROM parameters p
-    WHERE p.period_type = 'total'
+    ) AS gs
 ),
 
 catalogers (username, cataloger, display_order) AS (
@@ -107,9 +103,13 @@ inventory_activity AS (
         ELSE
         date_trunc(
             p.period_type,
-            some_date_column::timestamp
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'createdDate'
+            )::timestamp
         )::date
-        END,
+    END,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
         'instance_created'::text AS metric,
@@ -169,9 +169,13 @@ inventory_activity AS (
         ELSE
         date_trunc(
             p.period_type,
-            some_date_column::timestamp
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'createdDate'
+            )::timestamp
         )::date
-        END,
+    END,
         COALESCE(c.cataloger, 'husker')
 
     UNION ALL
@@ -184,9 +188,13 @@ inventory_activity AS (
         ELSE
         date_trunc(
             p.period_type,
-            some_date_column::timestamp
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'createdDate'
+            )::timestamp
         )::date
-        END,
+    END,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
         'item_added'::text AS metric,
@@ -246,9 +254,13 @@ inventory_activity AS (
         ELSE
         date_trunc(
             p.period_type,
-            some_date_column::timestamp
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'createdDate'
+            )::timestamp
         )::date
-        END,
+    END,
         COALESCE(c.cataloger, 'husker')
 
     UNION ALL
@@ -258,12 +270,15 @@ inventory_activity AS (
     CASE
         WHEN p.period_type = 'total'
             THEN p.report_start
-        ELSE
-        date_trunc(
+        ELSE    date_trunc(
             p.period_type,
-            some_date_column::timestamp
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'updatedDate'
+            )::timestamp
         )::date
-        END,
+    END,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
         'item_updated'::text AS metric,
@@ -323,9 +338,13 @@ inventory_activity AS (
         ELSE
         date_trunc(
             p.period_type,
-            some_date_column::timestamp
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'updatedDate'
+            )::timestamp
         )::date
-        END,
+    END,
         COALESCE(c.cataloger, 'husker')
 
     UNION ALL
@@ -338,9 +357,13 @@ inventory_activity AS (
         ELSE
         date_trunc(
             p.period_type,
-            some_date_column::timestamp
+            jsonb_extract_path_text(
+                i.jsonb,
+                'status',
+                'date'
+            )::timestamp
         )::date
-        END,
+    END,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
         'item_withdrawn'::text AS metric,
@@ -381,9 +404,13 @@ inventory_activity AS (
         ELSE
         date_trunc(
             p.period_type,
-            some_date_column::timestamp
+            jsonb_extract_path_text(
+                i.jsonb,
+                'status',
+                'date'
+            )::timestamp
         )::date
-        END,
+    END,
         COALESCE(c.cataloger, 'husker')
 ),
 
@@ -530,9 +557,9 @@ field_changes AS (
         ELSE
         date_trunc(
             p.period_type,
-            some_date_column::timestamp
+            ad.event_date::timestamp
         )::date
-        END,
+    END,
 
         COALESCE(c.cataloger, 'husker') AS cataloger,
         fc ->> 'changeType' AS change_type

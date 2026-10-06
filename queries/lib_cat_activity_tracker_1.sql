@@ -1,8 +1,8 @@
 -- metadb:function lib_cat_activity_tracker_1
 
-DROP FUNCTION IF EXISTS lib_cat_activity_tracker_2(date, date, text);
+DROP FUNCTION IF EXISTS lib_cat_activity_tracker_1(date, date, text);
 
-CREATE FUNCTION lib_cat_activity_tracker_2(
+CREATE FUNCTION lib_cat_activity_tracker_1(
     start_date date DEFAULT DATE '2000-01-01',
     end_date   date DEFAULT DATE '2050-01-01',
     system     text DEFAULT NULL

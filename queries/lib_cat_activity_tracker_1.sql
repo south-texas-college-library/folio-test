@@ -8,11 +8,11 @@ CREATE FUNCTION lib_cat_activity_tracker_1(
     system     text DEFAULT NULL
 )
 RETURNS TABLE(
+    cataloger text,
+    username text,
     period_type text,
     period_start date,
     period_end date,
-    cataloger text,
-    username text,
     instance_created numeric,
     field_added numeric,
     field_modified numeric,
@@ -38,7 +38,7 @@ parameters AS (
             WHEN end_date > start_date + 7
                 THEN 'week'
 
-            ELSE 'day'
+            ELSE 'total'
         END AS period_type
 ),
 
@@ -62,7 +62,7 @@ reporting_periods AS (
                     THEN (gs + INTERVAL '1 month - 1 day')::date
                 WHEN 'week'
                     THEN (gs + INTERVAL '6 days')::date
-                ELSE gs::date
+                ELSE /*gs::date*/
             END,
             p.report_end
         ) AS period_end
@@ -74,7 +74,7 @@ reporting_periods AS (
         CASE p.period_type
             WHEN 'month' THEN INTERVAL '1 month'
             WHEN 'week'  THEN INTERVAL '1 week'
-            ELSE INTERVAL '1 day'
+            ELSE /*INTERVAL '1 day'*/
         END
     ) AS gs
 ),

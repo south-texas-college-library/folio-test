@@ -63,8 +63,8 @@ reporting_periods AS (
         ) AS period_end::date
     FROM parameters p
     CROSS JOIN LATERAL generate_series(
-        date_trunc(p.period_type, p.report_start::timestamp),
-        date_trunc(p.period_type, p.report_end::timestamp),
+        date_trunc(p.period_type, p.report_start::date),
+        date_trunc(p.period_type, p.report_end::date),
         CASE p.period_type
             WHEN 'month' THEN INTERVAL '1 month'
             WHEN 'week'  THEN INTERVAL '1 week'
@@ -78,8 +78,8 @@ reporting_periods AS (
     SELECT
         p.period_type,
         p.report_start AS bucket_start,
-        p.report_start AS period_start::date,
-        p.report_end AS period_end::date
+        p.report_start AS period_start,
+        p.report_end AS period_end
     FROM parameters p
     WHERE p.period_type = 'total'
 ),
@@ -112,7 +112,7 @@ inventory_activity AS (
                 i.jsonb,
                 'metadata',
                 'createdDate'
-            )::timestamp
+            )::date
         )::date
     END AS bucket_start,
 
@@ -178,7 +178,7 @@ inventory_activity AS (
                 i.jsonb,
                 'metadata',
                 'createdDate'
-            )::timestamp
+            )::date
         )::date
     END,
         COALESCE(c.cataloger, 'husker')
@@ -197,7 +197,7 @@ inventory_activity AS (
                 i.jsonb,
                 'metadata',
                 'createdDate'
-            )::timestamp
+            )::date
         )::date
     END AS bucket_start,
 
@@ -263,7 +263,7 @@ inventory_activity AS (
                 i.jsonb,
                 'metadata',
                 'createdDate'
-            )::timestamp
+            )::date
         )::date
     END,
         COALESCE(c.cataloger, 'husker')
@@ -281,7 +281,7 @@ inventory_activity AS (
                 i.jsonb,
                 'metadata',
                 'updatedDate'
-            )::timestamp
+            )::date
         )::date
     END AS bucket_start,
 
@@ -347,7 +347,7 @@ inventory_activity AS (
                 i.jsonb,
                 'metadata',
                 'updatedDate'
-            )::timestamp
+            )::date
         )::date
     END,
         COALESCE(c.cataloger, 'husker')
@@ -366,7 +366,7 @@ inventory_activity AS (
                 i.jsonb,
                 'status',
                 'date'
-            )::timestamp
+            )::date
         )::date
     END AS bucket_start,
 
@@ -413,7 +413,7 @@ inventory_activity AS (
                 i.jsonb,
                 'status',
                 'date'
-            )::timestamp
+            )::date
         )::date
     END,
         COALESCE(c.cataloger, 'husker')
@@ -562,7 +562,7 @@ field_changes AS (
         ELSE
         date_trunc(
             p.period_type,
-            ad.event_date::timestamp
+            ad.event_date::date
         )::date
     END AS bucket_start,
 
@@ -626,8 +626,8 @@ period_catalogers AS (
         c.username,
         rp.period_type,
         rp.bucket_start,
-        rp.period_start::date,
-        rp.period_end::date,
+        rp.period_start,
+        rp.period_end,
         c.display_order
 
     FROM reporting_periods rp
@@ -693,8 +693,8 @@ LEFT JOIN marc_summary marc
    AND marc.cataloger = pc.cataloger
 
 ORDER BY
-    pc.period_start::date,
-    pc.display_order::date;
+    pc.period_start,
+    pc.display_order;
 $$
 LANGUAGE SQL
 STABLE

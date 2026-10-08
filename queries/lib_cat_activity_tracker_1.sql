@@ -644,8 +644,8 @@ SELECT
     pc.cataloger,
     pc.username,
     pc.period_type,
-    pc.period_start,
-    pc.period_end,
+    pc.period_start::date,
+    pc.period_end::date,
 
     COALESCE(
         inventory.instance_created,

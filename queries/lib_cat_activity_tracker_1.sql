@@ -51,7 +51,7 @@ reporting_periods AS (
     SELECT
         p.period_type,
         gs::date AS bucket_start,
-        GREATEST(gs::date, p.report_start) AS period_start,
+        GREATEST(gs::date, p.report_start)::date AS period_start,
         LEAST(
             CASE p.period_type
                 WHEN 'month'
@@ -60,7 +60,7 @@ reporting_periods AS (
                     THEN (gs + INTERVAL '6 days')::date
             END,
             p.report_end
-        ) AS period_end
+        )::date AS period_end
     FROM parameters p
     CROSS JOIN LATERAL generate_series(
         date_trunc(p.period_type, p.report_start::timestamp),
@@ -626,8 +626,8 @@ period_catalogers AS (
         c.username,
         rp.period_type,
         rp.bucket_start,
-        rp.period_start::date,
-        rp.period_end::date,
+        rp.period_start::date AS period_start,
+        rp.period_end::date AS period_end,
         c.display_order
 
     FROM reporting_periods rp
@@ -644,8 +644,8 @@ SELECT
     pc.cataloger,
     pc.username,
     pc.period_type,
-    pc.period_start::date,
-    pc.period_end::date,
+    pc.period_start::date AS period_start,
+    pc.period_end::date AS period_end,
 
     COALESCE(
         inventory.instance_created,

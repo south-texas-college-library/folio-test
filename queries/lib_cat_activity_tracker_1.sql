@@ -10,9 +10,9 @@ CREATE FUNCTION lib_cat_activity_tracker_1(
 RETURNS TABLE(
     cataloger text,
     username text,
-    --period_type text,
+    period_type text,
     period_start text,
-    --period_end text,
+    period_end text,
     instance_created numeric,
     field_added numeric,
     field_modified numeric,

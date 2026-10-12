@@ -624,10 +624,10 @@ period_catalogers AS (
     SELECT
         c.cataloger,
         c.username,
-        --rp.period_type,
+        rp.period_type,
         rp.bucket_start,
         rp.period_start::date AS period_start,
-        --rp.period_end::date AS period_end,
+        rp.period_end::date AS period_end,
         c.display_order
 
     FROM reporting_periods rp
@@ -643,7 +643,7 @@ period_catalogers AS (
 SELECT
     pc.cataloger,
     pc.username,
-    --pc.period_type,
+    pc.period_type,
     TO_CHAR(pc.period_start, 'YYYY-MM-DD') AS period_start,
     TO_CHAR(pc.period_end,   'YYYY-MM-DD') AS period_end,
 

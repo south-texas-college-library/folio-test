@@ -8,8 +8,8 @@ CREATE FUNCTION lib_cat_activity_tracker_1(
     system     text DEFAULT NULL
 )
 RETURNS TABLE(
-    "Cataloger" text,
-    "Username" text,
+    "System" text,
+    --"Username" text,
     --"Frequency" text,
     "Start Date" text,
     --"End Date" text,
@@ -642,7 +642,7 @@ period_catalogers AS (
 
 SELECT
     pc.cataloger,
-    pc.username,
+    --pc.username,
     --pc.period_type,
     TO_CHAR(pc.period_start, 'YYYY-MM-DD') AS "Start Date",
     --TO_CHAR(pc.period_end,   'YYYY-MM-DD') AS "End Date",

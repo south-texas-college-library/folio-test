@@ -8,18 +8,18 @@ CREATE FUNCTION lib_cat_activity_tracker_1(
     system     text DEFAULT NULL
 )
 RETURNS TABLE(
-    cataloger text,
-    username text,
-    --period_type text,
-    period_start text,
-    --period_end text,
-    instance_created numeric,
-    field_added numeric,
-    field_modified numeric,
-    field_removed numeric,
-    item_added numeric,
-    item_updated numeric,
-    item_withdrawn numeric
+    "Cataloger" text,
+    "Username" text,
+    --"Frequency" text,
+    "Start Date" text,
+    --"End Date" text,
+    "Instance Created" numeric,
+    "Field Added" numeric,
+    "Field Modified" numeric,
+    "Field Removed" numeric,
+    "Item Added" numeric,
+    "Item Updated" numeric,
+    "Item Withdrawn" numeric
 )
 AS $$
 WITH RECURSIVE
@@ -626,8 +626,8 @@ period_catalogers AS (
         c.username,
         rp.period_type,
         rp.bucket_start,
-        rp.period_start::date AS period_start,
-        rp.period_end::date AS period_end,
+        rp.period_start::date AS "Start Date",
+        rp.period_end::date AS "End Date",
         c.display_order
 
     FROM reporting_periods rp
@@ -644,8 +644,8 @@ SELECT
     pc.cataloger,
     pc.username,
     --pc.period_type,
-    TO_CHAR(pc.period_start, 'YYYY-MM-DD') AS period_start,
-    --TO_CHAR(pc.period_end,   'YYYY-MM-DD') AS period_end,
+    TO_CHAR(pc.period_start, 'YYYY-MM-DD') AS "Start Date",
+    --TO_CHAR(pc.period_end,   'YYYY-MM-DD') AS "End Date",
 
     COALESCE(
         inventory.instance_created,

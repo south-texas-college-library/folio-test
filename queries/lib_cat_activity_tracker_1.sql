@@ -626,8 +626,8 @@ period_catalogers AS (
         c.username,
         rp.period_type,
         rp.bucket_start,
-        rp.period_start::date AS "Start Date",
-        rp.period_end::date AS "End Date",
+        rp.period_start::date AS period_start,
+        rp.period_end::date AS period_end,
         c.display_order
 
     FROM reporting_periods rp

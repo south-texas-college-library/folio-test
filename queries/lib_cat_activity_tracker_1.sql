@@ -507,8 +507,8 @@ UNION ALL
             p.period_type,
             jsonb_extract_path_text(
                 i.jsonb,
-                'metadata',
-                'createdDate'
+                'status',
+                'date'
             )::timestamp
         )::date
     END AS bucket_start,
@@ -527,7 +527,7 @@ UNION ALL
 
     LEFT JOIN catalogers c
         ON c.username = updated_by.username
-    WHERE jsonb_extract_path_text(i.jsonb, 'modeOfIssuanceId') = '068b5344-e2a6-40df-9186-1829e13cd344'
+    WHERE jsonb_extract_path_text(i.jsonb, 'materialTypeId') = '03fd8c73-d683-4083-acf4-3f3923d70237'
     /*WHERE jsonb_extract_path_text(i.jsonb, 'barcode')
               !~ '^(SE|L|RSV|T|M|P)'*/
       AND jsonb_extract_path_text(

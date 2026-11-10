@@ -19,7 +19,9 @@ RETURNS TABLE(
     "Field Removed" numeric,
     "Item Added" numeric,
     "Item Updated" numeric,
-    "Item Withdrawn" numeric
+    "Item Withdrawn" numeric,
+    "Serials Added" numeric,
+    "Serials Withdrawn" numeric,
 )
 AS $$
 WITH RECURSIVE
@@ -417,6 +419,146 @@ inventory_activity AS (
         )::date
     END,
         COALESCE(c.cataloger, 'husker')
+
+UNION ALL
+
+/* Serials created */
+    SELECT
+    CASE
+        WHEN p.period_type = 'total'
+            THEN p.report_start
+        ELSE
+        date_trunc(
+            p.period_type,
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'createdDate'
+            )::timestamp
+        )::date
+    END AS bucket_start,
+        COALESCE(c.cataloger, 'husker') AS cataloger,
+        'serial_added'::text AS metric,
+        COUNT(*)::numeric AS activity_count
+    FROM folio_inventory.item__ i
+    CROSS JOIN parameters p
+    LEFT JOIN folio_permissions.permissions_users pu
+        ON jsonb_extract_path_text(
+               pu.jsonb,
+               'userId'
+           )::uuid =
+           jsonb_extract_path_text(
+               i.jsonb,
+               'metadata',
+               'createdByUserId'
+           )::uuid
+       AND EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements_text(
+                COALESCE(
+                    pu.jsonb -> 'permissions',
+                    '[]'::jsonb
+                )
+            ) permission
+            WHERE permission =
+                '07e78044-2804-496e-a3e7-074f557dd361'
+       )
+    LEFT JOIN folio_users.users__t created_by
+        ON created_by.id =
+           jsonb_extract_path_text(
+               pu.jsonb,
+               'userId'
+           )::uuid
+    LEFT JOIN catalogers c
+        ON c.username = created_by.username
+    WHERE jsonb_extract_path_text(i.jsonb, 'modeOfIssuanceId') = '068b5344-e2a6-40df-9186-1829e13cd344'
+    /*WHERE jsonb_extract_path_text(i.jsonb, 'barcode')
+              !~ '^(SE|L|RSV|T|M|P)'*/
+      AND jsonb_extract_path_text(
+              i.jsonb,
+              'metadata',
+              'createdDate'
+          )::date
+          BETWEEN p.report_start AND p.report_end
+    GROUP BY
+    CASE
+        WHEN p.period_type = 'total'
+            THEN p.report_start
+        ELSE
+        date_trunc(
+            p.period_type,
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'createdDate'
+            )::timestamp
+        )::date
+    END,
+        COALESCE(c.cataloger, 'husker')
+    UNION ALL
+
+/* Serials withdrawn */
+    SELECT
+    CASE
+        WHEN p.period_type = 'total'
+            THEN p.report_start
+        ELSE
+        date_trunc(
+            p.period_type,
+            jsonb_extract_path_text(
+                i.jsonb,
+                'metadata',
+                'createdDate'
+            )::timestamp
+        )::date
+    END AS bucket_start,
+        COALESCE(c.cataloger, 'husker') AS cataloger,
+        'serial_withdrawn'::text AS metric,
+        COUNT(*)::numeric AS activity_count
+    FROM folio_inventory.item__ i
+    CROSS JOIN parameters p
+    LEFT JOIN folio_users.users__t updated_by
+        ON updated_by.id =
+           jsonb_extract_path_text(
+               i.jsonb,
+               'metadata',
+               'updatedByUserId'
+           )::uuid
+
+    LEFT JOIN catalogers c
+        ON c.username = updated_by.username
+    WHERE jsonb_extract_path_text(i.jsonb, 'modeOfIssuanceId') = '068b5344-e2a6-40df-9186-1829e13cd344'
+    /*WHERE jsonb_extract_path_text(i.jsonb, 'barcode')
+              !~ '^(SE|L|RSV|T|M|P)'*/
+      AND jsonb_extract_path_text(
+              i.jsonb,
+              'status',
+              'name'
+          ) = 'Withdrawn'
+
+      AND jsonb_extract_path_text(
+              i.jsonb,
+              'status',
+              'date'
+          )::date
+	BETWEEN p.report_start AND p.report_end
+    GROUP BY
+    CASE
+        WHEN p.period_type = 'total'
+            THEN p.report_start
+        ELSE
+        date_trunc(
+            p.period_type,
+            jsonb_extract_path_text(
+                i.jsonb,
+                'status',
+                'date'
+            )::timestamp
+        )::date
+    END,
+        COALESCE(c.cataloger, 'husker')
+    --UNION ALL
+
 ),
 
 inventory_summary AS (
@@ -446,7 +588,19 @@ inventory_summary AS (
             SUM(activity_count)
             FILTER (WHERE metric = 'item_withdrawn'),
             0
-        )::numeric AS item_withdrawn
+        )::numeric AS item_withdrawn,
+
+		COALESCE(
+			SUM(activity_count)
+			FILTER (WHERE metric = 'serial_added'),
+			0
+		)::numeric AS serial_added,
+
+		COALESCE(
+			SUM(activity_count)
+			FILTER (WHERE metric = 'serial_withdrawn'),
+			0
+		)::numeric AS serial_withdrawn
 
     FROM inventory_activity
 
@@ -680,7 +834,15 @@ SELECT
     COALESCE(
         inventory.item_withdrawn,
         0
-    )::numeric AS item_withdrawn
+    )::numeric AS item_withdrawn,
+	COALESCE(
+		inventory.serial_added,
+		0
+	)::numeric AS serial_added,
+	COALESCE(
+		inventory.serial_withdrawn,
+		0
+	)::numeric AS serial_withdrawn
 
 FROM period_catalogers pc
 

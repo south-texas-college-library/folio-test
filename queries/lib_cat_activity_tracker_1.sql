@@ -21,7 +21,7 @@ RETURNS TABLE(
     "Item Updated" numeric,
     "Item Withdrawn" numeric,
     "Serials Added" numeric,
-    "Serials Withdrawn" numeric,
+    "Serials Withdrawn" numeric
 )
 AS $$
 WITH RECURSIVE
